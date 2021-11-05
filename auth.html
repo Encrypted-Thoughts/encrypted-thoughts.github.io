@@ -46,13 +46,12 @@
         const searchParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substr(1));
 
-        if (searchParams.get('code')) {
-            const urlParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('code')) 
             $("#code").val(urlParams.get('code'));
-        }
-        else if (hashParams.get('access_token')) {
+        else if (hashParams.get('access_token')) 
             $("#code").val(hashParams.get('access_token'));
-        }
+        else 
+            $("#code").val("No Code/Token Detected");
     </script>
 </body>
 </html>
