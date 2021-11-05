@@ -50,8 +50,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             $("#code").val(urlParams.get('code'));
         }
-        else if (hashParams.get('access_code')) {
-            $("#code").val(hashParams.get('access_code'));
+        else if (hashParams.get('access_token')) {
+            $("#code").val(hashParams.get('access_token'));
         }
     </script>
 </body>
