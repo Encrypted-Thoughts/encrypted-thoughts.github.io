@@ -28,8 +28,6 @@
         }
 
         #code {
-            width: 25%;
-            height: 100%;
             min-height: 50px;
             min-width: 400px;
             text-align: center;
@@ -42,9 +40,9 @@
 <body>
     <div id="container">
         <h1>Authorization Code / Access Token</h1>
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center ">
 		    <input class="form-control" style="border-radius: 0%;" type="text" id="code" readonly>
-            <a class="btn btn-primary h-100" style="border-radius: 0%;" href="#" onclick="copyToClipboard()"><i class="fas fa-copy h-100"></i></a>
+            <a class="btn btn-dark h-100" style="border-radius: 0%;box-shadow: 2px 2px 4px black;" href="#" onclick="copyToClipboard()"><i class="fas fa-copy h-100"></i></a>
         </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
