@@ -16,14 +16,21 @@
         #container {
             font-family: 'Roboto', sans-serif;
             text-align: center;
-            height: 100%;
-            width: 100%;
+            height: 25%;
+            width: 25%;
         }
 
         h3 {
             color: white;
             text-shadow: 2px 2px 4px #000000;
-            min-width: 400px;
+        }
+
+        .center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
         }
 
         #code {
@@ -32,24 +39,17 @@
             font-size: large;
             box-shadow: 2px 2px 4px black;
             min-height: 65px;
-            min-width: 400px;
         }
     </style>
 </head>
 <body>
-    <div id="container" class="container-fluid">
-        <div style="padding-top: 40vh;">
-            <div class="row" style="padding-left: 25%; padding-right: 25%;">
-                <h3>Authorization Code / Access Token</h3>
-            </div>
-            <div class="row" style="padding-left: 25%; padding-right: 25%;">
-                <div class="d-flex align-items-center">
-                    <input class="form-control" style="border-radius: 0%;" type="text" id="code" readonly>
-                    <button  class="btn btn-dark h-100 d-flex align-items-center" style="border-radius: 0%;box-shadow: 2px 2px 4px black" onclick="copyToClipboard()">
-                        <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="copy" class="svg-inline--fa fa-copy h-75"role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="white" d="M384 96L384 0h-112c-26.51 0-48 21.49-48 48v288c0 26.51 21.49 48 48 48H464c26.51 0 48-21.49 48-48V128h-95.1C398.4 128 384 113.6 384 96zM416 0v96h96L416 0zM192 352V128h-144c-26.51 0-48 21.49-48 48v288c0 26.51 21.49 48 48 48h192c26.51 0 48-21.49 48-48L288 416h-32C220.7 416 192 387.3 192 352z"></path></svg>
-                    </button>
-                </div>
-            </div>
+    <div id="container" class="center">
+        <h3>Authorization Code / Access Token</h3>
+        <div class="d-flex align-items-center">
+            <input class="form-control" style="border-radius: 0%;" type="text" id="code" onclick="this.select()" readonly>
+            <button  class="btn btn-dark d-flex align-items-center" style="border-radius: 0%;box-shadow: 2px 2px 4px black; min-height: 65px; min-width: 65px" onclick="copyToClipboard()">
+                <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="copy" class="svg-inline--fa fa-copy h-75"role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="white" d="M384 96L384 0h-112c-26.51 0-48 21.49-48 48v288c0 26.51 21.49 48 48 48H464c26.51 0 48-21.49 48-48V128h-95.1C398.4 128 384 113.6 384 96zM416 0v96h96L416 0zM192 352V128h-144c-26.51 0-48 21.49-48 48v288c0 26.51 21.49 48 48 48h192c26.51 0 48-21.49 48-48L288 416h-32C220.7 416 192 387.3 192 352z"></path></svg>
+            </button>
         </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
