@@ -24,13 +24,15 @@ export default {
 
 <template>
 
-    <div class="grid h-screen justify-items-center place-content-center">
-        <h1 class="text-2xl text-white">Authorization Code / Access Token</h1>
-        <div class="flex flex-row">
-            <input type="text" v-model="code" ref="code" class="w-96 shadow-lg text-center font-bold rounded-l-md outline-none" @click="this.$refs.code.select()" readonly>
-            <button @click="copyToClipboard()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 shadow-lg rounded-r-md">
-                <font-awesome-icon icon="copy"/>
-            </button>
+    <div class="mx-auto bg-gray-800">
+        <div class="grid h-screen justify-items-center place-content-center">
+            <h1 class="text-2xl text-white">Authorization Code / Access Token</h1>
+            <div class="flex flex-row">
+                <input type="text" v-model="code" ref="code" class="w-96 shadow-lg text-center font-bold rounded-l-md outline-none" @click="this.$refs.code.select()" readonly>
+                <button @click="copyToClipboard()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 shadow-lg rounded-r-md">
+                    <font-awesome-icon icon="copy"/>
+                </button>
+            </div>
         </div>
     </div>
 
