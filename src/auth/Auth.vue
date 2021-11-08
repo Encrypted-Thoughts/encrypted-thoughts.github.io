@@ -24,24 +24,18 @@ export default {
 
 <template>
 
-    <div class="h-full bg-gray-900">
-        <div id="border" class="h-full border-4 border-gray-600 rounded-md">
-            <div class="grid h-full justify-items-center place-content-center">
-                <h1 class="text-2xl text-white">Authorization Code / Access Token</h1>
-                <div class="flex flex-row">
-                    <input type="text" v-model="code" ref="code" class="w-96 shadow-lg text-center font-bold rounded-l-md outline-none" @click="this.$refs.code.select()" readonly>
-                    <button @click="copyToClipboard()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 shadow-lg rounded-r-md">
-                        <font-awesome-icon icon="copy"/>
-                    </button>
-                </div>
-            </div>
+    <div class="flex flex-col h-full w-full justify-center items-center text-center">
+        <h1 class="text-2xl text-white">Authorization Code / Access Token</h1>
+        <div class="flex w-full max-w-lg m-2">
+            <input type="text" v-model="code" ref="code" class="flex-1 shadow-lg text-center font-bold rounded-l-md outline-none ml-2" @click="this.$refs.code.select()" readonly>
+            <button @click="copyToClipboard()" class="flex-none bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 shadow-lg rounded-r-md mr-2">
+                <font-awesome-icon icon="copy"/>
+            </button>
         </div>
     </div>
+
 
 </template>
 
 <style scoped>
-#border {
-    box-shadow: 1px 1px 0.5em black inset;
-}
 </style>

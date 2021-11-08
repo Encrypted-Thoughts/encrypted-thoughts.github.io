@@ -13,7 +13,7 @@ export default {
 <template>
   <div class="h-full bg-gray-800">
     <div class="flex flexwrap h-full">
-      <div class="w-2/5 sm:w-full lg:h-full">
+      <div class="w-full">
         <Bio/>
       </div>
     </div>

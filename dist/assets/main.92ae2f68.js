@@ -15,4 +15,4 @@ import{_ as s}from"./plugin-vue_export-helper.f9bdc015.js";import{P as _,o,c as 
     ],\r
     "links": ["https://www.twitch.tv/encryptedthoughts"]\r
 }`,-1)),x=r(`\r
-    `),k=[y,b,x];function B(e,a,c,i,d,l){return o(),n("pre",$,k)}var j=s(g,[["render",B],["__scopeId","data-v-12728e94"]]);const S={components:{Bio:j}},E={class:"h-full bg-gray-800"},I={class:"flex flexwrap h-full"},T={class:"w-2/5 sm:w-full lg:h-full"};function N(e,a,c,i,d,l){const p=m("Bio");return o(),n("div",E,[t("div",I,[t("div",T,[f(p)])])])}var P=s(S,[["render",N]]);v(P).mount("#app");
+    `),k=[y,b,x];function B(e,a,c,i,d,l){return o(),n("pre",$,k)}var j=s(g,[["render",B],["__scopeId","data-v-12728e94"]]);const S={components:{Bio:j}},E={class:"h-full bg-gray-800"},I={class:"flex flexwrap h-full"},T={class:"w-full"};function N(e,a,c,i,d,l){const p=m("Bio");return o(),n("div",E,[t("div",I,[t("div",T,[f(p)])])])}var P=s(S,[["render",N]]);v(P).mount("#app");

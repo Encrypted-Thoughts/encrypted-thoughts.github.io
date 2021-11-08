@@ -15,7 +15,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(root, 'index.html'),
-        auth: resolve(root, 'auth.html')
+        auth: resolve(root, 'auth.html'),
+        chathistory: resolve(root, 'chat-history.html')
       }
     },
   },

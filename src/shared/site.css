@@ -2,13 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-body, html {
-    height: 100%;
-    width: 100%;
-}
-
 #app {
     font-family: 'Roboto', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+#border {
+    box-shadow: 1px 1px 0.5em black inset;
 }
