@@ -39,5 +39,7 @@ export default {
 #code-block {
     margin: 0px;
     background-color: rgba(23,23,23, 1);
+    border: 0px;
+    border-radius: 0px;
 }
 </style>
