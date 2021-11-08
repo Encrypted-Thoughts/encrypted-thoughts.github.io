@@ -15,8 +15,7 @@ export default {
 
 <template>
     <pre id="code-block" class="language-json grid justify-items-center place-content-center w-full h-full">
-        <code>
-{
+        <code>{
     "name": "Encrypted Thoughts",
     "aliases": ["Encrypted", "ET"],
     "status": "Sleep deprived and somewhere between obsessed and apathetic.",
@@ -32,8 +31,7 @@ export default {
         "people that don't clear excess time off the microwave"
     ],
     "links": ["https://www.twitch.tv/encryptedthoughts"]
-}
-        </code>
+}</code>
     </pre>
 </template>
 
