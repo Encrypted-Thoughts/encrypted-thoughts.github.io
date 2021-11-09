@@ -17,7 +17,11 @@ export default {
         vods: [],
         filteredVods: [],
         comments: [],
-        filteredComments: []
+        filteredComments: [],
+        loadedComments: [],
+        loadedCommentIndex: 0,
+        cancelCommentFetch: false,
+        commentFetchInProgress: false
     }),
     methods: {
         getToken() {
@@ -54,14 +58,30 @@ export default {
 
             this.timeout = setTimeout(() => {
                 
+                this.loadedCommentIndex = 0;
+                this.loadedComments = [];
                 this.filteredComments = this.comments.filter(this.compareComment);
+                this.loadedComments = this.loadedComments.concat(this.filteredComments.slice(this.loadedCommentIndex, this.loadedCommentIndex + 1001));
+                this.loadedCommentIndex = this.loadedComments.length;
 
             }, 200); 
         },
+        onCommentScroll({ target: { scrollTop, clientHeight, scrollHeight }}) {
+            if (this.timeout) 
+                clearTimeout(this.timeout); 
+
+            this.timeout = setTimeout(() => {
+                if (scrollTop + clientHeight >= scrollHeight){
+                    var startTotal = this.loadedComments.length;
+                    this.loadedComments = this.loadedComments.concat(this.filteredComments.slice(this.loadedCommentIndex, this.loadedCommentIndex + 1001));
+                    this.loadedCommentIndex += this.loadedComments.length - startTotal;
+                }
+            }, 200); 
+        },
         compareComment(comment) {
-            if (!comment.commenter.display_name.toLowerCase().includes(this.user_filter.toLowerCase()) && this.user_filter !== "")
+            if (!comment.username.toLowerCase().includes(this.user_filter.toLowerCase()) && this.user_filter !== "")
                 return false;
-            if (!comment.message.body.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
+            if (!comment.message.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
                 return false;
             
             return true;
@@ -87,22 +107,31 @@ export default {
                     'Authorization': 'Bearer ' + this.code
                 };
                 const res = await axios.get(`https://api.twitch.tv/helix/videos?user_id=${id}&first=100&after=${cursor}`, { headers });
-                this.vods.push(...res.data.data);
-                this.filteredVods.push(...res.data.data.filter(this.compareVod));
+                var data = res.data.data.map(v => ({id: v.id, created_at: v.created_at, title: v.title }));
+                this.vods.push(...data);
+                this.filteredVods.push(...data.filter(this.compareVod));
                 if(res.data.pagination.cursor)
                     cursor = res.data.pagination.cursor;
                 else
                     break;
             } while (cursor)
-
-            this.filterVods();
         },
         async getComments(event) {
+
+            if (this.commentFetchInProgress) {
+                this.cancelCommentFetch = true;
+                while (this.commentFetchInProgress)
+                    await new Promise(r => setTimeout(r, 1000));
+            }
+
             const headers = { 'Client-ID': client_id };
             const baseUrl = `https://api.twitch.tv/v5/videos/${event.target.value}/comments`;
             var cursor = '';
             this.comments = [];
             this.filteredComments = [];
+            this.loadedComments = [];
+            this.loadedCommentIndex = 0;
+            this.commentFetchInProgress = true;
 
             do {
                 var url = (cursor === null || cursor === '') ?
@@ -110,15 +139,21 @@ export default {
                     `${baseUrl}?cursor=${cursor}`;
 
                 const res = await axios.get(url, { headers });
-                this.comments.push(...res.data.comments);
-                this.filteredComments.push(...res.data.comments.filter(this.compareComment));
+                var data = res.data.comments.map(c => ({created_at: c.created_at, username: c.commenter.display_name, message: c.message.body }));
+                this.comments.push(...data);
+                var filtered = data.filter(this.compareComment);
+                this.filteredComments.push(...filtered);
+                if (this.loadedComments.length < 1000)
+                    this.loadedComments.push(...filtered);
                 if(res.data._next)
                     cursor = res.data._next;
                 else
                     break;
-            } while (cursor)
+            } while (cursor && !this.cancelCommentFetch)
 
-            this.filterComments();
+            this.loadedCommentIndex = this.loadedComments.length;
+            this.commentFetchInProgress = false;
+            this.cancelCommentFetch = false;
         }
     },
     created: function(){
@@ -157,13 +192,13 @@ export default {
                         <input @input="filterVods()" id="end_time" v-model="end_filter" type="datetime-local" class="flex-1 form-input bg-gray-900 px-4 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
                     </div>
                 </div>
-                <select @change="getComments($event)" size="20" class="h-full w-full p-2 border-2 border-gray-600 bg-gray-900 rounded-md overflow-y-auto bg-none">
+                <select @change="getComments($event)" size="20" class="h-full w-full p-2 border-2 border-gray-600 bg-gray-900 rounded-md overflow-y-auto overflow-x-auto bg-none">
                     <option v-for="(vod, index) in filteredVods" v-bind:value="vod.id" class="rounded-sm even:bg-gray-800">{{ formatDate(vod.created_at) }}: {{vod.title}}</option>
                 </select>
             </div>
         </div>
         <div class="h-2/3 w-full xl:w-2/3 xl:h-full pt-2 xl:pt-0 xl:pl-2">
-            <div class="overflow-y-auto overflow-x-auto h-full rounded-md border-3 border-gray-600 bg-gray-900">
+            <div @scroll="onCommentScroll" class="overflow-y-auto overflow-x-auto h-full rounded-md border-3 border-gray-600 bg-gray-900">
                 <table class="table-auto bg-gray-900 text-left w-full">
                     <thead class="border-b-4 border-gray-600">
                         <tr>
@@ -177,10 +212,10 @@ export default {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="comment in filteredComments" class="even:bg-gray-800">
+                        <tr v-for="comment in loadedComments" class="even:bg-gray-800">
                             <td class="pl-2 pr-2">{{ formatDate(comment.created_at ) }}</td>
-                            <td class="pl-2 pr-2">{{ comment.commenter.display_name }}</td>
-                            <td class="pl-2 pr-2">{{ comment.message.body }}</td>
+                            <td class="pl-2 pr-2">{{ comment.username }}</td>
+                            <td class="pl-2 pr-2">{{ comment.message }}</td>
                         </tr>
                     </tbody>
                 </table>

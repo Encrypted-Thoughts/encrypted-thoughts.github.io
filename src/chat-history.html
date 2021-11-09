@@ -13,8 +13,10 @@
       import './shared/site.css'
       import ChatHistory from "./chat-history/ChatHistory.vue"
       import { library } from "@fortawesome/fontawesome-svg-core"
-      import { faCopy } from "@fortawesome/free-solid-svg-icons"
+      import { faSpinner } from "@fortawesome/free-solid-svg-icons"
       import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+      library.add(faSpinner);
 
       createApp(ChatHistory)
           .component("font-awesome-icon", FontAwesomeIcon)
