@@ -135,7 +135,7 @@ export default {
                     `${baseUrl}?cursor=${cursor}`;
 
                 const res = await axios.get(url, { headers });
-                var data = res.data.comments.map(c => ({created_at: c.created_at, username: c.commenter.display_name, message: c.message.body }));
+                var data = res.data.comments.map(c => ({created_at: c.created_at, username: c.commenter.display_name, message: c.message.body, user_color: c.message.user_color }));
                 this.comments.push(...data);
                 var filtered = data.filter(this.compareComment);
                 this.filteredComments.push(...filtered);
@@ -189,28 +189,23 @@ export default {
                     </div>
                 </div>
                     <select @change="getComments($event)" size="20" class="focus:outline-none focus:ring-0 focus:border-green-700 p-0 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md bg-none scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
-                        <option v-for="(vod, index) in filteredVods" v-bind:value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">{{ formatDate(vod.created_at) }}: {{vod.title}}</option>
+                        <option v-for="(vod, index) in filteredVods" v-bind:value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
+                            {{ formatDate(vod.created_at) }}: {{vod.title}}
+                        </option>
                     </select>
             </div>
         </div>
         <div class="h-2/3 w-full xl:w-2/3 xl:h-full pt-2 xl:pt-0 xl:pl-2">
             <div class="flex flex-col rounded-md h-full border-3 border-gray-600 bg-gray-900">
                 <div class="flex w-full border-b-4 border-gray-600">
-                    <div class="self-center py-2 px-3 min-w-52 w-1/6">TIMESTAMP</div>
-                    <div class="py-2 px-2 border-l-3 border-gray-600 min-w-28 w-1/6">
-                        <input @input="filterComments()" id="user_filter" v-model="user_filter" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 rounded-md w-full placeholder-white" placeholder="USERNAME"/>
-                    </div>
-                    <div class="py-2 px-2 border-l-3 border-gray-600 w-4/6">
-                        <input @input="filterComments()" id="message_filter" v-model="message_filter" type="text" class="form-inputfocus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 rounded-md w-full placeholder-white" placeholder="MESSAGE"/>
-                    </div>
+                    <input @input="filterComments()" id="user_filter" v-model="user_filter" type="text" class="w-2/6 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
+                    <input @input="filterComments()" id="message_filter" v-model="message_filter" type="text" class="w-4/6 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
                 </div>
                 <div @scroll="onCommentScroll" class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
                     <div class="w-full bg-gray-900 text-left">
                         <div class="w-full">
                             <div v-for="comment in loadedComments" class="flex even:bg-gray-800">
-                                <div class="px-3 py-1 min-w-52 w-1/6 self-center">{{ formatDate(comment.created_at ) }}</div>
-                                <div class="px-3 py-1 min-w-28 w-1/6 self-center">{{ comment.username }}</div>
-                                <div class="px-3 py-1 w-4/6">{{ comment.message }}</div>
+                                <div class="px-3 py-1 w-full self-center"><span class="text-gray-400">{{formatDate(comment.created_at)}}</span> <span v-bind:style="{ color: comment.user_color }">{{comment.username}}</span>: {{ comment.message }}</div>
                             </div>
                         </div>
                     </div>
