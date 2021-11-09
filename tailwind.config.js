@@ -9,6 +9,12 @@ module.exports = {
       '1/4': '25%',
       '1/2': '50%',
       '3/4': '75%',
+      '28': '7rem',
+      '32': '8rem',
+      '36': '9rem',
+      '40': '10rem',
+      '44': '11rem',
+      '48': '12rem',
       '52': '13rem',
       '56': '14rem',
       '60': '15rem',
@@ -46,5 +52,6 @@ module.exports = {
   plugins: [
     require('@tailwindcss/typography'),
     require('@tailwindcss/forms'),
+    require('tailwind-scrollbar'),
   ],
 }

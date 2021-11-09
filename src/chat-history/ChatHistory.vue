@@ -2,11 +2,10 @@
 import axios from 'axios';
 import moment from 'moment';
 
-const client_id = 'icyqwwpy744ugu5x4ymyt6jqrnpxso';
-
 export default {
     name: "ChatHistory",
     data: ()=>( {
+        client_id: 'icyqwwpy744ugu5x4ymyt6jqrnpxso',
         code: "",
         username: "",
         vod_filter: "",
@@ -24,9 +23,6 @@ export default {
         commentFetchInProgress: false
     }),
     methods: {
-        getToken() {
-            window.location.href = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`;
-        },
         formatDate(value) {
             if (value) {
                 return moment(String(value)).format('YYYY/MM/DD hh:mm:ss A')
@@ -89,7 +85,7 @@ export default {
         async getUserId() {
 
             const headers = {
-                'Client-ID': client_id,
+                'Client-ID': this.client_id,
                 'Authorization': 'Bearer ' + this.code
             };
             const res = await axios.get(`https://api.twitch.tv/helix/users?login=${this.username}`, { headers });
@@ -103,7 +99,7 @@ export default {
 
             do {
                 const headers = {
-                    'Client-ID': client_id,
+                    'Client-ID': this.client_id,
                     'Authorization': 'Bearer ' + this.code
                 };
                 const res = await axios.get(`https://api.twitch.tv/helix/videos?user_id=${id}&first=100&after=${cursor}`, { headers });
@@ -124,7 +120,7 @@ export default {
                     await new Promise(r => setTimeout(r, 1000));
             }
 
-            const headers = { 'Client-ID': client_id };
+            const headers = { 'Client-ID': this.client_id };
             const baseUrl = `https://api.twitch.tv/v5/videos/${event.target.value}/comments`;
             var cursor = '';
             this.comments = [];
@@ -172,53 +168,53 @@ export default {
 
     <div class="flex flex-wrap h-full w-full text-white p-2">
         <div class="h-1/3 w-full xl:w-1/3 xl:h-full border-b-4 border-gray-600 pb-2 xl:pb-0 xl:pr-2 xl:border-b-0 xl:border-r-4">
-            <div class="flex flex-col h-full min-w-full gap-2">
-                <div class="flex flex-wrap gap-2 max-w-full">
+            <div class="flex flex-col h-full w-full gap-2">
+                <div class="flex flex-wrap gap-2 min-w-full">
                     <div class="flex gap-2 min-w-full max-h-full">
-                        <button @click="getToken()" class="bg-gray-900 border-2 border-gray-600 w-1/3 hover:bg-gray-700 font-bold py-2 px-4 shadow-lg rounded-md">
+                        <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" class="text-center bg-gray-900 border-2 border-gray-600 w-1/3 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md">
                             GET TOKEN
-                        </button>
-                        <input id="code" v-model="code" type="text" class="form-input bg-gray-900 px-4 py-2 rounded-md w-2/3" placeholder="Enter Access Token"/>
+                        </a>
+                        <input id="code" v-model="code" type="text" class="form-input bg-gray-900 px-3 py-2 rounded-md w-2/3" placeholder="Enter Access Token"/>
                     </div>
                     <div class="flex gap-2 min-w-full">
-                        <input v-model="username" type="text" class="form-input bg-gray-900 px-4 py-2 rounded-md w-2/3" placeholder="Enter Username"/>
-                        <button @click="getVods()" :disabled="!this.username || !this.code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-4 shadow-lg rounded-md w-1/3 disabled:opacity-50 disabled:hover">
-                            POPULATE VOD LIST
+                        <input v-model="username" type="text" class="form-input bg-gray-900 px-3 py-2 rounded-md w-2/3" placeholder="Enter Username"/>
+                        <button @click="getVods()" :disabled="!this.username || !this.code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md w-1/3 disabled:opacity-50 disabled:hover">
+                            LOAD VOD LIST
                         </button>
                     </div>
-                    <input @input="filterVods()" id="vod-filter" v-model="vod_filter" type="text" class="form-input bg-gray-900 px-4 py-2 rounded-md min-w-full disabled:opacity-50" placeholder="Filter on VOD name..."/>
+                    <input @input="filterVods()" id="vod-filter" v-model="vod_filter" type="text" class="form-input bg-gray-900 px-3 py-2 rounded-md min-w-full disabled:opacity-50" placeholder="Filter on VOD name..."/>
                     <div class="flex gap-2 min-w-full">
-                        <input @input="filterVods()" id="start_time" v-model="start_filter" type="datetime-local" class="flex-1 form-input bg-gray-900 px-4 py-2 rounded-md disabled:opacity-50" placeholder="Start time filter..."/>
-                        <input @input="filterVods()" id="end_time" v-model="end_filter" type="datetime-local" class="flex-1 form-input bg-gray-900 px-4 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
+                        <input @input="filterVods()" id="start_time" v-model="start_filter" type="datetime-local" class="flex-1 form-input bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Start time filter..."/>
+                        <input @input="filterVods()" id="end_time" v-model="end_filter" type="datetime-local" class="flex-1 form-input bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
                     </div>
                 </div>
-                <select @change="getComments($event)" size="20" class="h-full w-full p-2 border-2 border-gray-600 bg-gray-900 rounded-md overflow-y-auto overflow-x-auto bg-none">
-                    <option v-for="(vod, index) in filteredVods" v-bind:value="vod.id" class="rounded-sm even:bg-gray-800">{{ formatDate(vod.created_at) }}: {{vod.title}}</option>
-                </select>
+                    <select @change="getComments($event)" size="20" class="p-0 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md bg-none scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
+                        <option v-for="(vod, index) in filteredVods" v-bind:value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">{{ formatDate(vod.created_at) }}: {{vod.title}}</option>
+                    </select>
             </div>
         </div>
         <div class="h-2/3 w-full xl:w-2/3 xl:h-full pt-2 xl:pt-0 xl:pl-2">
-            <div @scroll="onCommentScroll" class="overflow-y-auto overflow-x-auto h-full rounded-md border-3 border-gray-600 bg-gray-900">
-                <table class="table-auto bg-gray-900 text-left w-full">
-                    <thead class="border-b-4 border-gray-600">
-                        <tr>
-                        <th class="p-2 w-52 min-w-52">TIMESTAMP</th>
-                        <th class="p-2 w-60 border-l-3 border-gray-600">
-                            <input @input="filterComments()" id="user_filter" v-model="user_filter" type="text" class="form-input bg-gray-900 rounded-md w-full placeholder-white" placeholder="USERNAME"/>
-                        </th>
-                        <th class="p-2 border-l-3 border-gray-600">
-                            <input @input="filterComments()" id="message_filter" v-model="message_filter" type="text" class="form-input bg-gray-900 rounded-md w-full placeholder-white" placeholder="MESSAGE"/>
-                        </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="comment in loadedComments" class="even:bg-gray-800">
-                            <td class="pl-2 pr-2">{{ formatDate(comment.created_at ) }}</td>
-                            <td class="pl-2 pr-2">{{ comment.username }}</td>
-                            <td class="pl-2 pr-2">{{ comment.message }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="flex flex-col rounded-md h-full border-3 border-gray-600 bg-gray-900">
+                <div class="flex w-full border-b-4 border-gray-600">
+                    <div class="self-center py-2 px-3 min-w-52 w-1/6">TIMESTAMP</div>
+                    <div class="py-2 px-2 border-l-3 border-gray-600 min-w-28 w-1/6">
+                        <input @input="filterComments()" id="user_filter" v-model="user_filter" type="text" class="form-input bg-gray-900 rounded-md w-full placeholder-white" placeholder="USERNAME"/>
+                    </div>
+                    <div class="py-2 px-2 border-l-3 border-gray-600 w-4/6">
+                        <input @input="filterComments()" id="message_filter" v-model="message_filter" type="text" class="form-input bg-gray-900 rounded-md w-full placeholder-white" placeholder="MESSAGE"/>
+                    </div>
+                </div>
+                <div @scroll="onCommentScroll" class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
+                    <div class="w-full bg-gray-900 text-left">
+                        <div class="w-full">
+                            <div v-for="comment in loadedComments" class="flex even:bg-gray-800">
+                                <div class="px-3 py-1 min-w-52 w-1/6 self-center">{{ formatDate(comment.created_at ) }}</div>
+                                <div class="px-3 py-1 min-w-28 w-1/6 self-center">{{ comment.username }}</div>
+                                <div class="px-3 py-1 w-4/6">{{ comment.message }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
