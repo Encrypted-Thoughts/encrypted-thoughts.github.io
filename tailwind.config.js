@@ -9,6 +9,8 @@ module.exports = {
       '1/4': '25%',
       '1/2': '50%',
       '3/4': '75%',
+      '52': '13rem',
+      '56': '14rem',
       '60': '15rem',
       '96': '24rem',
       'full': '100%',
@@ -36,7 +38,10 @@ module.exports = {
     }
   },
   variants: {
-    extend: {},
+    extend: {
+      backgroundColor: ['even', 'odd', 'hover', 'disabled'],
+      opacity: ['disabled']
+    },
   },
   plugins: [
     require('@tailwindcss/typography'),
