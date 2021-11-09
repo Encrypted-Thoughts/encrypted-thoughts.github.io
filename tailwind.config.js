@@ -41,6 +41,9 @@ module.exports = {
       indigo: colors.indigo,
       red: colors.rose,
       yellow: colors.amber,
+    },
+    outline: {
+      green: '2px solid rgba(6, 78, 59, 1)',
     }
   },
   variants: {
