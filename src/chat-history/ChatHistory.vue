@@ -7,8 +7,8 @@ const client_id = 'icyqwwpy744ugu5x4ymyt6jqrnpxso';
 export default {
     name: "ChatHistory",
     data: ()=>( {
-        code: "rrqze800uc5uwpvwqr69mzqpocmbub",
-        username: "rnjoy",
+        code: "",
+        username: "",
         vod_filter: "",
         start_filter: "",
         end_filter: "",
