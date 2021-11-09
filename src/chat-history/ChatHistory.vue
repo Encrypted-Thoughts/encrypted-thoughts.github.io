@@ -141,9 +141,11 @@ export default {
                 this.filteredComments.push(...filtered);
                 if (this.loadedComments.length < 1000)
                     this.loadedComments.push(...filtered);
-                if(res.data._next)
+                if (res.data._next)
                     cursor = res.data._next;
                 else
+                    break;
+                if (this.comments.length > 10000)
                     break;
             } while (cursor && !this.cancelCommentFetch)
 
