@@ -135,7 +135,12 @@ export default {
                     `${baseUrl}?cursor=${cursor}`;
 
                 const res = await axios.get(url, { headers });
-                var data = res.data.comments.map(c => ({created_at: c.created_at, username: c.commenter.display_name, message: c.message.body, user_color: c.message.user_color }));
+                var data = res.data.comments.map(c => ({
+                    created_at: c.created_at, 
+                    username: c.commenter.display_name, 
+                    message: c.message.body, 
+                    user_color: c.message.user_color, 
+                    vod_link: `https://www.twitch.tv/videos/${event.target.value}?t=${Math.floor(c.content_offset_seconds/3600)}h${Math.floor(c.content_offset_seconds/60)}m${Math.floor(c.content_offset_seconds%60)}s` }));
                 this.comments.push(...data);
                 var filtered = data.filter(this.compareComment);
                 this.filteredComments.push(...filtered);
@@ -205,7 +210,11 @@ export default {
                     <div class="w-full bg-gray-900 text-left">
                         <div class="w-full">
                             <div v-for="comment in loadedComments" class="flex even:bg-gray-800">
-                                <div class="px-3 py-1 w-full self-center"><span class="text-gray-400">{{formatDate(comment.created_at)}}</span> <span v-bind:style="{ color: comment.user_color }">{{comment.username}}</span>: {{ comment.message }}</div>
+                                <div class="px-3 py-1 w-full self-center">
+                                    <a class="text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatDate(comment.created_at)}}</a>
+                                    <a :style="{ color: comment.user_color }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.username}}</a>
+                                    <span>: {{ comment.message }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
