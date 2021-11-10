@@ -193,7 +193,7 @@ export default {
                         <input @input="filterVods()" id="end_time" v-model="end_filter" type="datetime-local" :class="end_filter ? '' : 'end-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
                     </div>
                 </div>
-                <select @change="getComments($event)" size="20" class="focus:outline-none focus:ring-0 focus:border-green-700 p-0 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md bg-none scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
+                <select @change="getComments($event)" size="20" class="focus:outline-none focus:ring-0 focus:border-green-800 p-0 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md bg-none scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
                     <option v-for="(vod, index) in filteredVods" :value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
                         {{ formatDate(vod.created_at) }}: {{vod.title}}
                     </option>
@@ -230,6 +230,14 @@ export default {
 ::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }
+
+option:checked { 
+    @apply bg-green-800;
+    @apply text-white;
+}
+
+::-moz-selection { @apply bg-green-900; }
+::selection { @apply bg-green-900; }
 
 .start-time:before{
     content: 'Filter on start time...';
