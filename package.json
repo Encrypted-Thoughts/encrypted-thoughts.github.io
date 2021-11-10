@@ -5,6 +5,7 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist",
     "push": "git subtree push --prefix dist origin gh-pages"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "@types/prismjs": "^1.16.6",
     "@vitejs/plugin-vue": "^1.9.3",
     "autoprefixer": "^10.4.0",
+    "gh-pages": "^3.2.3",
     "postcss": "^8.3.11",
     "prismjs": "^1.25.0",
     "tailwind-scrollbar": "^1.3.1",
