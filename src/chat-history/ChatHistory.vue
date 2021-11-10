@@ -25,7 +25,12 @@ export default {
     methods: {
         formatDate(value) {
             if (value) {
-                return moment(String(value)).format('YYYY/MM/DD hh:mm:ss A')
+                return moment(String(value)).format('YYYY-MM-DD')
+            }
+        },
+        formatTime(value) {
+            if (value) {
+                return moment(String(value)).format('hh:mm:ss A')
             }
         },
         filterVods() {
@@ -211,7 +216,7 @@ export default {
                         <div class="w-full">
                             <div v-for="comment in loadedComments" class="flex even:bg-gray-800">
                                 <div class="px-3 py-1 w-full self-center">
-                                    <a class="text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatDate(comment.created_at)}}</a>
+                                    <a class="text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
                                     <a :style="{ color: comment.user_color }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.username}}</a>
                                     <span>: {{ comment.message }}</span>
                                 </div>
@@ -252,6 +257,5 @@ option:checked {
     width:100%;
     color: gray;
 }
-
 
 </style>
