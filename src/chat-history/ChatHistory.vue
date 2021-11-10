@@ -214,6 +214,7 @@ export default {
                 </div>
             </div>
         </div>
+        <font-awesome-icon icon="spinner" pulse v-show="commentFetchInProgress" class="absolute bottom-5 right-7"/>
     </div>
 
 </template>
