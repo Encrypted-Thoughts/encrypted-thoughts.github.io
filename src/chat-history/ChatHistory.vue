@@ -208,8 +208,8 @@ export default {
         <div class="h-2/3 w-full xl:w-2/3 xl:h-full pt-2 xl:pt-0 xl:pl-2">
             <div class="flex flex-col rounded-md h-full border-3 border-gray-600 bg-gray-900">
                 <div class="flex w-full border-b-4 border-gray-600">
-                    <input @input="filterComments()" id="user_filter" v-model="user_filter" type="text" class="w-2/6 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
-                    <input @input="filterComments()" id="message_filter" v-model="message_filter" type="text" class="w-4/6 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
+                    <input @input="filterComments()" id="user_filter" v-model="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
+                    <input @input="filterComments()" id="message_filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
                 </div>
                 <div @scroll="onCommentScroll" class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
                     <div class="w-full bg-gray-900 text-left">
