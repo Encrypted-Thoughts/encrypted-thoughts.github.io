@@ -172,15 +172,12 @@ export default {
         <div class="h-1/3 w-full xl:w-1/3 xl:h-full border-b-4 border-gray-600 pb-2 xl:pb-0 xl:pr-2 xl:border-b-0 xl:border-r-4">
             <div class="flex flex-col h-full w-full gap-2">
                 <div class="flex flex-wrap gap-2 min-w-full">
-                    <div class="flex gap-2 min-w-full max-h-full">
-                        <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" class="text-center bg-gray-900 border-2 border-gray-600 w-1/3 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md">
-                            GET TOKEN
+                    <div class="flex gap-2 min-w-full max-h-full pb-2 border-b-5 border-gray-600">
+                        <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" class="w-1/4 text-center bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md">
+                            GET TOKEN <font-awesome-icon icon="check" v-show="this.code" class="text-green-600"/>
                         </a>
-                        <input id="code" v-model="code" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/3" placeholder="Enter Access Token"/>
-                    </div>
-                    <div class="flex gap-2 min-w-full">
-                        <input v-model="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/3" placeholder="Enter Username"/>
-                        <button @click="getVods()" :disabled="!this.username || !this.code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md w-1/3 disabled:opacity-50">
+                        <input v-model="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
+                        <button @click="getVods()" :disabled="!this.username || !this.code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md w-1/4 disabled:opacity-50">
                             GET VODS
                         </button>
                     </div>
