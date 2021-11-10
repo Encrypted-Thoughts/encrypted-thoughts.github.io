@@ -174,21 +174,22 @@ export default {
                 <div class="flex flex-wrap gap-2 min-w-full">
                     <div class="flex gap-2 min-w-full max-h-full pb-2 border-b-5 border-gray-600">
                         <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" class="w-1/4 text-center bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md">
-                            GET TOKEN <font-awesome-icon icon="check" v-show="this.code" class="text-green-600"/>
+                            GET TOKEN <font-awesome-icon icon="check" v-show="code" class="text-green-600"/>
                         </a>
                         <input v-model="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
-                        <button @click="getVods()" :disabled="!this.username || !this.code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md w-1/4 disabled:opacity-50">
+                        <button @click="getVods()" :disabled="!username || !code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md w-1/4 disabled:opacity-50">
                             GET VODS
                         </button>
                     </div>
-                    <input @input="filterVods()" id="vod-filter" v-model="vod_filter" type="text" class="focus:outline-none focus:ring-0 focus:border-green-700 form-input bg-gray-900 px-3 py-2 rounded-md min-w-full disabled:opacity-50" placeholder="Filter on VOD name..."/>
+                    
                     <div class="flex gap-2 min-w-full">
-                        <input @input="filterVods()" id="start_time" v-model="start_filter" type="datetime-local" class="flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Start time filter..."/>
-                        <input @input="filterVods()" id="end_time" v-model="end_filter" type="datetime-local" class="flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
+                        <input @input="filterVods()" id="vod-filter" v-model="vod_filter" type="text" class="w-1/3 focus:outline-none focus:ring-0 focus:border-green-700 form-input bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Filter on VOD name..."/>
+                        <input @input="filterVods()" id="start_time" v-model="start_filter" type="datetime-local" :class="start_filter ? '' : 'start-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Start time filter..."/>
+                        <input @input="filterVods()" id="end_time" v-model="end_filter" type="datetime-local" :class="end_filter ? '' : 'end-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
                     </div>
                 </div>
                 <select @change="getComments($event)" size="20" class="focus:outline-none focus:ring-0 focus:border-green-700 p-0 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md bg-none scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
-                    <option v-for="(vod, index) in filteredVods" v-bind:value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
+                    <option v-for="(vod, index) in filteredVods" :value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
                         {{ formatDate(vod.created_at) }}: {{vod.title}}
                     </option>
                 </select>
@@ -221,16 +222,18 @@ export default {
     filter: invert(1);
 }
 
-input[type="datetime-local"]#start_time:before{
-    content: 'Start Time: ';
+.start-time:before{
+    content: 'Filter on start time...';
     text-align: left;
-    width:80px;
+    width:100%;
+    color: gray;
 }
 
-input[type="datetime-local"]#end_time:before {
-    content: 'End Time: ';
+.end-time:before {
+    content: 'Filter on end time...';
     text-align: left;
-    width:75px;
+    width:100%;
+    color: gray;
 }
 
 
