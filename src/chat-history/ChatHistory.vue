@@ -20,27 +20,44 @@ export default {
         loadedComments: [],
         loadedCommentIndex: 0,
         cancelCommentFetch: false,
-        commentFetchInProgress: false
+        commentFetchInProgress: false,
+        selectSize: window.innerHeight < 800 ? 0 : 20
     }),
     methods: {
-        formatDate(value) {
-            if (value) {
-                return moment(String(value)).format('YYYY-MM-DD')
-            }
-        },
-        formatTime(value) {
-            if (value) {
-                return moment(String(value)).format('hh:mm:ss A')
-            }
-        },
-        filterVods() {
+        handleWindowResize() {
             if (this.timeout) 
                 clearTimeout(this.timeout); 
-
             this.timeout = setTimeout(() => {
-                
+                if(this.isMobile())
+                    this.selectSize = 0;
+                else
+                    this.selectSize = window.innerHeight < 800 ? 0 : 20;
+            }, 100); 
+        },
+        isMobile() {
+            if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+                return true
+             return false
+        },
+        formatDate(value) {
+            if (value) 
+                return moment(String(value)).format('YYYY-MM-DD');
+        },
+        formatTime(value) {
+            if (value) 
+                return moment(String(value)).format('hh:mm:ss A');
+        },
+        filterVods(event) {
+            if (this.timeout) 
+                clearTimeout(this.timeout); 
+            this.timeout = setTimeout(() => {
+                if (event.target.id === 'vod-filter')
+                    this.vod_filter = event.target.value;
+                else if (event.target.id === 'start-time')
+                    this.start_time = event.target.value;
+                else if (event.target.id === 'end-filter')
+                    this.end_time = event.target.value;
                 this.filteredVods = this.vods.filter(this.compareVod);
-
             }, 200); 
         },
         compareVod(vod) {
@@ -53,12 +70,16 @@ export default {
             
             return true;
         },
-        filterComments() {
+        filterComments(event) {
             if (this.timeout) 
                 clearTimeout(this.timeout); 
 
             this.timeout = setTimeout(() => {
                 
+                if (event.target.id === 'user-filter')
+                    this.user_filter = event.target.value;
+                else if (event.target.id === 'message-filter')
+                    this.message_filter = event.target.value;
                 this.loadedCommentIndex = 0;
                 this.loadedComments = [];
                 this.filteredComments = this.comments.filter(this.compareComment);
@@ -171,6 +192,12 @@ export default {
             this.code = urlParams.get('code');
         else if (hashParams.get('access_token'))
             this.code = hashParams.get('access_token');
+
+        window.addEventListener("resize", this.handleWindowResize);
+        this.handleWindowResize();
+    },
+    destroyed() {
+        window.removeEventListener("resize", this.handleWindowResize);
     }
 }
 
@@ -187,19 +214,20 @@ export default {
                             <span class="text-xs md:text-base xl:text-lg" v-show="!code">ALLOW ACCESS</span>
                             <span class="text-xs md:text-base xl:text-lg" v-show="code">ALLOWED <font-awesome-icon icon="check" class="text-green-600"/></span>
                         </a>
-                        <input v-model="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
+                        <input @input="evt => username=evt.target.value" v-model="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
                         <button @click="getVods()" :disabled="!username || !code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md w-1/4 disabled:opacity-50">
                             <span class="text-xs md:text-base xl:text-lg">VODS <font-awesome-icon icon="search"/></span>
                         </button>
                     </div>
                     
                     <div class="flex gap-2 min-w-full">
-                        <input @input="filterVods()" id="vod-filter" v-model="vod_filter" type="text" class="w-1/3 focus:outline-none focus:ring-0 focus:border-green-700 form-input bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Filter on VOD name..."/>
-                        <input @input="filterVods()" id="start_time" v-model="start_filter" type="datetime-local" :class="start_filter ? '' : 'start-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Start time filter..."/>
-                        <input @input="filterVods()" id="end_time" v-model="end_filter" type="datetime-local" :class="end_filter ? '' : 'end-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
+                        <input @input="filterVods($event)" id="vod-filter" v-model="vod_filter" type="text" class="w-1/3 focus:outline-none focus:ring-0 focus:border-green-700 form-input bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Filter on VOD name..."/>
+                        <input @input="filterVods($event)" id="start_time" v-model="start_filter" type="datetime-local" :class="start_filter ? '' : 'start-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Start time filter..."/>
+                        <input @input="filterVods($event)" id="end_time" v-model="end_filter" type="datetime-local" :class="end_filter ? '' : 'end-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
                     </div>
                 </div>
-                <select @change="getComments($event)" size="20" class="focus:outline-none focus:ring-0 focus:border-green-800 p-0 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md bg-none scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
+                <select ref="vodSelect" @change="getComments($event)" :disabled="vods.length === 0" :size="selectSize" :class="selectSize > 0 ? 'bg-none p-0' : ''" class="focus:outline-none focus:ring-0 focus:border-green-800 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 break-words whitespace-normal">
+                    <option value="" disabled hidden selected class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">Select a vod...</option>
                     <option v-for="(vod, index) in filteredVods" :value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
                         {{ formatDate(vod.created_at) }}: {{vod.title}}
                     </option>
@@ -209,8 +237,8 @@ export default {
         <div class="h-2/3 w-full xl:w-2/3 xl:h-full pt-2 xl:pt-0 xl:pl-2">
             <div class="flex flex-col rounded-md h-full border-3 border-gray-600 bg-gray-900">
                 <div class="flex w-full border-b-4 border-gray-600">
-                    <input @input="filterComments()" id="user_filter" v-model="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
-                    <input @input="filterComments()" id="message_filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
+                    <input @input="filterComments($event)" id="user_filter" v-model="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
+                    <input @input="filterComments($event)" id="message_filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
                 </div>
                 <div @scroll="onCommentScroll" class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
                     <div class="w-full bg-gray-900 text-left">
