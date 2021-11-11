@@ -1,4 +1,4 @@
-import{_ as s}from"./plugin-vue_export-helper.f9bdc015.js";import{P as _,o,c as n,a,p as h,b as u,d as t,r as m,e as f,f as v}from"./vendor.3674b703.js";const g={mounted(){_.highlightAll()}},w=e=>(h("data-v-22a9041a"),e=e(),u(),e),$={id:"code-block",class:"language-json grid justify-items-center place-content-center w-full h-full"},b=a("        "),y=w(()=>t("code",null,`{\r
+import{_ as s}from"./plugin-vue_export-helper.f9bdc015.js";import{P as _,o,c as n,a,p as h,b as u,d as t,r as m,e as f,f as v}from"./vendor.702b46c5.js";const g={mounted(){_.highlightAll()}},w=e=>(h("data-v-22a9041a"),e=e(),u(),e),$={id:"code-block",class:"language-json grid justify-items-center place-content-center w-full h-full"},b=a("        "),y=w(()=>t("code",null,`{\r
     "name": "Encrypted Thoughts",\r
     "aliases": ["Encrypted", "ET"],\r
     "status": "Sleep deprived and somewhere between obsessed and apathetic.",\r
