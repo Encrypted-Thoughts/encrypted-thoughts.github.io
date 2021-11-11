@@ -183,12 +183,13 @@ export default {
             <div class="flex flex-col h-full w-full gap-2">
                 <div class="flex flex-wrap gap-2 min-w-full">
                     <div class="flex gap-2 min-w-full max-h-full pb-2 border-b-5 border-gray-600">
-                        <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" :class="code ? '' : 'animate-pulse'" class="w-1/4 text-center bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md">
-                            <span v-show="!code">GET</span> TOKEN <font-awesome-icon icon="check" v-show="code" class="text-green-600"/>
+                        <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" :class="code ? '' : 'animate-pulse'" class="w-1/4 text-center bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md">
+                            <span class="text-xs md:text-base xl:text-lg" v-show="!code">ALLOW ACCESS</span>
+                            <span class="text-xs md:text-base xl:text-lg" v-show="code">ALLOWED <font-awesome-icon icon="check" class="text-green-600"/></span>
                         </a>
                         <input v-model="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
-                        <button @click="getVods()" :disabled="!username || !code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-3 shadow-lg rounded-md w-1/4 disabled:opacity-50">
-                            GET VODS
+                        <button @click="getVods()" :disabled="!username || !code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md w-1/4 disabled:opacity-50">
+                            <span class="text-xs md:text-base xl:text-lg">VODS <font-awesome-icon icon="search"/></span>
                         </button>
                     </div>
                     
@@ -232,23 +233,22 @@ export default {
 </template>
 
 <style scoped>
-::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-}
+::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+::-moz-selection { @apply bg-green-900; }
+::selection { @apply bg-green-900; }
 
 option:checked { 
     @apply bg-green-800;
     @apply text-white;
 }
 
-::-moz-selection { @apply bg-green-900; }
-::selection { @apply bg-green-900; }
-
 .start-time:before{
     content: 'Filter on start time...';
     text-align: left;
     width:100%;
     color: gray;
+    white-space: nowrap;
 }
 
 .end-time:before {
@@ -256,6 +256,7 @@ option:checked {
     text-align: left;
     width:100%;
     color: gray;
+    white-space: nowrap
 }
 
 </style>
