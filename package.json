@@ -14,7 +14,8 @@
     "@fortawesome/vue-fontawesome": "^3.0.0-5",
     "axios": "^0.24.0",
     "moment": "^2.29.1",
-    "vue": "^3.2.16"
+    "vue": "^3.2.16",
+    "vue-infinite-loading": "^3.0.0-alpha.0-0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.4",
