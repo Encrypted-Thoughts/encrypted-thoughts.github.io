@@ -51,12 +51,16 @@ export default {
             if (this.timeout) 
                 clearTimeout(this.timeout); 
             this.timeout = setTimeout(() => {
+
+                // needed for input change detection on mobile
                 if (event.target.id === 'vod-filter')
                     this.vod_filter = event.target.value;
                 else if (event.target.id === 'start-time')
                     this.start_time = event.target.value;
                 else if (event.target.id === 'end-filter')
                     this.end_time = event.target.value;
+
+                this.$refs.vodSelect[0].selected = true;
                 this.filteredVods = this.vods.filter(this.compareVod);
             }, 200); 
         },
@@ -76,10 +80,12 @@ export default {
 
             this.timeout = setTimeout(() => {
                 
+                // needed for input change detection on mobile
                 if (event.target.id === 'user-filter')
                     this.user_filter = event.target.value;
                 else if (event.target.id === 'message-filter')
                     this.message_filter = event.target.value;
+
                 this.loadedCommentIndex = 0;
                 this.loadedComments = [];
                 this.filteredComments = this.comments.filter(this.compareComment);
@@ -105,7 +111,6 @@ export default {
                 return false;
             if (!comment.message.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
                 return false;
-            
             return true;
         },
         async getUserId() {
@@ -172,12 +177,9 @@ export default {
                 this.filteredComments.push(...filtered);
                 if (this.loadedComments.length < 1000)
                     this.loadedComments.push(...filtered);
-                if (res.data._next)
-                    cursor = res.data._next;
-                else
+                if (!res.data._next || this.comments.length > 10000)
                     break;
-                if (this.comments.length > 10000)
-                    break;
+                cursor = res.data._next;
             } while (cursor && !this.cancelCommentFetch)
 
             this.loadedCommentIndex = this.loadedComments.length;
@@ -227,7 +229,7 @@ export default {
                     </div>
                 </div>
                 <select ref="vodSelect" @change="getComments($event)" :disabled="vods.length === 0" :size="selectSize" :class="selectSize > 0 ? 'bg-none p-0' : ''" class="focus:outline-none focus:ring-0 focus:border-green-800 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 break-words whitespace-normal">
-                    <option value="" disabled hidden selected class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">Select a vod...</option>
+                    <option ref="defaultOption" value="" disabled hidden selected class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">Select a vod...</option>
                     <option v-for="(vod, index) in filteredVods" :value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
                         {{ formatDate(vod.created_at) }}: {{vod.title}}
                     </option>
