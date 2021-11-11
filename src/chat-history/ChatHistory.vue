@@ -1,7 +1,30 @@
 <script>
 import axios from 'axios';
 import moment from 'moment';
+import tinycolor from 'tinycolor2';
 import InfiniteLoading from 'vue-infinite-loading';
+
+function getColor(original) {
+    if(!original)
+        return "hsl(264, 100%, 75%)";
+
+    let color = tinycolor(original);
+    if(color.isDark())
+        return color.brighten(20).toHexString();
+
+    return original;    
+}
+
+function buildMessage(rawMessage) {
+    let message = "<span class='text-center'>";
+    for (let i=0; i < rawMessage.fragments.length; i++) {
+        if (rawMessage.fragments[i].emoticon)
+            message += `<img class="inline" src="https://static-cdn.jtvnw.net/emoticons/v1/${rawMessage.fragments[i].emoticon.emoticon_id}/2.0" alt="${rawMessage.fragments[i].text}" height='28' width='28'">`
+        else
+            message += `<span class="inline">${rawMessage.fragments[i].text}<span>`
+    }
+    return message + "</span>";
+}
 
 export default {
     name: "ChatHistory",
@@ -10,6 +33,8 @@ export default {
     },
     data: ()=>( {
         client_id: 'icyqwwpy744ugu5x4ymyt6jqrnpxso',
+        global_badges: {},
+        channel_badges: {},
         code: "",
         username: "",
         vod_filter: "",
@@ -21,8 +46,8 @@ export default {
         infiniteId: 0,
         selectedVod: 0,
         filteredVods: [],
-        commentChunkCursors: [''],
-        currentChunkId: 0,
+        commentCursor: '',
+        commentChunkCounter: 0,
         comments: [],
         cancelCommentFetch: false,
         commentFetchInProgress: false,
@@ -92,7 +117,7 @@ export default {
                     this.message_filter = event.target.value;
 
                 this.reloadComments();
-            }, 200); 
+            }, 500); 
         },
         async loadComments($state) {
             if (this.selectedVod === 0) {
@@ -103,14 +128,15 @@ export default {
                 this.cancelCommentFetch = true;
                 while (this.commentFetchInProgress)
                     await new Promise(r => setTimeout(r, 1000));
-                this.reloadComments();
+                this.comments = [];
+                this.commentCursor = "";
+                this.commentChunkCounter = 0;
             }
 
             const headers = { 'Client-ID': this.client_id };
             const baseUrl = `https://api.twitch.tv/v5/videos/${this.selectedVod}/comments`;
-            var cursor = this.commentChunkCursors[this.currentChunkId];
+            var cursor = this.commentCursor;
             this.commentFetchInProgress = true;
-            this.cancelCommentFetch = false;
 
             do {
                 var url = (cursor === null || cursor === '') ?
@@ -121,18 +147,20 @@ export default {
                 var data = res.data.comments.map(c => ({
                     created_at: c.created_at, 
                     username: c.commenter.display_name, 
-                    message: c.message.body, 
-                    user_color: c.message.user_color, 
+                    badges: this.buildBadges(c.message.user_badges),
+                    message: buildMessage(c.message), 
+                    user_color: getColor(c.message.user_color),
                     vod_link: `https://www.twitch.tv/videos/${this.selectedVod}?t=${Math.floor(c.content_offset_seconds/3600)}h${Math.floor(c.content_offset_seconds/60)}m${Math.floor(c.content_offset_seconds%60)}s` }));
                 this.comments.push(...data.filter(this.compareComment));
+
                 if (!res.data._next) {
                     $state.loaded();
                     $state.complete();
                     break;
                 }
-                if (this.comments.length > (this.currentChunkId*1000 + 5000)){
-                    this.commentChunkCursors.push(res.data._next);
-                    this.currentChunkId += 1;
+                if (this.comments.length > (this.commentChunkCounter*500 + 500)){
+                    this.commentCursor = res.data._next;
+                    this.commentChunkCounter += 1;
                     $state.loaded();
                     break;
                 }
@@ -141,6 +169,22 @@ export default {
 
             this.commentFetchInProgress = false;
             this.cancelCommentFetch = false;
+        },
+        buildBadges(rawBadges) {
+            let message = "<span class='text-center'>";
+            if (rawBadges) {
+                for (let i=0; i < rawBadges.length; i++) {
+                    if (this.channel_badges[rawBadges[i]._id]) {
+                        let badge = this.channel_badges[rawBadges[i]._id].versions[rawBadges[i].version];
+                        message += `<img class="inline px-1" src="${badge.image_url_2x}" alt="${badge.title}" height='28' width='28'">`
+                    }
+                    else if (this.global_badges[rawBadges[i]._id]) {
+                        let badge = this.global_badges[rawBadges[i]._id].versions[rawBadges[i].version];
+                        message += `<img class="inline px-1" src="${badge.image_url_2x}" alt="${badge.title}" height='28' width='28'">`
+                    }
+                }
+            }
+            return message + "</span>";
         },
         compareComment(comment) {
             if (!comment.username.toLowerCase().includes(this.user_filter.toLowerCase()) && this.user_filter !== "")
@@ -164,6 +208,11 @@ export default {
             this.vods = [];
             this.filteredVods = [];
 
+            axios.get(`https://badges.twitch.tv/v1/badges/channels/${id}/display`)
+             .then(results => {
+                 this.channel_badges = results.data.badge_sets;
+             });
+
             do {
                 const headers = {
                     'Client-ID': this.client_id,
@@ -181,9 +230,8 @@ export default {
         },
         async reloadComments() {
             this.comments = [];
-            this.commentChunkCursors = [""];
-            this.cancelCommentFetch = true;
-            this.currentChunkId = 0;  
+            this.commentCursor = "";
+            this.commentChunkCounter = 0;
             this.infiniteId += 1; 
         }
     },
@@ -194,6 +242,11 @@ export default {
             this.code = urlParams.get('code');
         else if (hashParams.get('access_token'))
             this.code = hashParams.get('access_token');
+
+        axios.get('https://badges.twitch.tv/v1/badges/global/display')
+             .then(results => {
+                 this.global_badges = results.data.badge_sets;
+             });
 
         window.addEventListener("resize", this.handleWindowResize);
         this.handleWindowResize();
@@ -243,11 +296,13 @@ export default {
                     <input @input="filterComments($event)" id="message_filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
                 </div>
                 <div infinite-wrapper class="scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
-                    <div v-for="comment in comments" class="flex even:bg-gray-800">
-                        <div class="px-3 py-1 w-full self-center">
-                            <a class="text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
-                            <a :style="{ color: comment.user_color }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.username}}</a>
-                            <span>: {{ comment.message }}</span>
+                    <div v-for="comment in comments" class="even:bg-gray-800">
+                        <div class="px-3 py-1 w-full">
+                            <a class="inline text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
+                            <div class="inline" v-html="comment.badges"></div>
+                            <a class="inline" :style="{ color: comment.user_color }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.username}}</a>
+                            <span class="inline">: </span>
+                            <div class="inline" v-html="comment.message"></div>
                         </div>
                     </div>
                     <infinite-loading spinner="2" forceUseInfiniteWrapper="true" :distance="200" :identifier="infiniteId" @infinite="loadComments" class="even:bg-gray-800">
