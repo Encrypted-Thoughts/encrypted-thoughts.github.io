@@ -176,11 +176,11 @@ export default {
                 for (let i=0; i < rawBadges.length; i++) {
                     if (this.channel_badges[rawBadges[i]._id]) {
                         let badge = this.channel_badges[rawBadges[i]._id].versions[rawBadges[i].version];
-                        message += `<img class="inline px-1" src="${badge.image_url_2x}" alt="${badge.title}" height='28' width='28'">`
+                        message += `<img class="inline pr-1" src="${badge.image_url_2x}" alt="${badge.title}" height='28' width='28'">`
                     }
                     else if (this.global_badges[rawBadges[i]._id]) {
                         let badge = this.global_badges[rawBadges[i]._id].versions[rawBadges[i].version];
-                        message += `<img class="inline px-1" src="${badge.image_url_2x}" alt="${badge.title}" height='28' width='28'">`
+                        message += `<img class="inline pr-1" src="${badge.image_url_2x}" alt="${badge.title}" height='28' width='28'">`
                     }
                 }
             }
