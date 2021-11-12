@@ -316,7 +316,7 @@ export default {
 
 </template>
 
-<style scoped>
+<style>
 ::-webkit-calendar-picker-indicator { filter: invert(1); }
 
 ::-moz-selection { @apply bg-green-900; }
