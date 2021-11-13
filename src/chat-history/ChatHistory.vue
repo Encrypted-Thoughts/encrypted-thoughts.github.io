@@ -14,6 +14,7 @@ export default {
         global_twitch: {},
         global_bttv: {},
         channel_twitch: {},
+        channel_cheers: {},
         channel_bttv: {},
         code: "",
         username: "",
@@ -69,16 +70,37 @@ export default {
 
             return original;    
         },
-        parseBttv(fragments) {
-            for(let i=0; i < fragments.length; i++) {
-                if (!fragments[i].emoticon) {
-                    for(let j=0; j < this.global_bttv.length; j++) 
-                        fragments[i].text = fragments[i].text.replace(new RegExp(this.global_bttv[j].code, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${this.global_bttv[j].id}/2x" alt="${this.global_bttv[j].code}" title="${this.global_bttv[j].code}" height="28" width="28"> `);
-                    for(let j=0; j < this.channel_bttv.length; j++) 
-                        fragments[i].text = fragments[i].text.replace(new RegExp(this.channel_bttv[j].code, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${this.channel_bttv[j].id}/2x" alt="${this.channel_bttv[j].code}" title="${this.channel_bttv[j].code}" height="28" width="28"> `);
+        parseBttvAndBits(message) {
+            for(let fragment of message.fragments) {
+                if (!fragment.emoticon) {
+                    if (message.bits_spent) {
+                        let items = [];
+                        for (let item of fragment.text.split(" ")) {
+                            let text = item;
+                            for(let cheer of this.channel_cheers) {
+                                if (item.toLowerCase().includes(cheer.prefix.toLowerCase())) {
+                                    let amount = Number(item.substr(cheer.prefix.length));
+                                    for(let i=cheer.tiers.length-1; i >= 0; i--) {
+                                        let title = cheer.prefix + cheer.tiers[i].min_bits;
+                                        if (amount >= cheer.tiers[i].min_bits) {
+                                            text = `<img class="inline" src="${cheer.tiers[i].images.dark.animated["2"]}" alt="${title}" title="${title}" height="28" width="28">${amount}`;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (text !== item) break;
+                            }
+                            items.push(text);
+                        }
+                        fragment.text = items.join(" ");
+                    }
+                    for(let bttv of this.global_bttv) 
+                        fragment.text = fragment.text.replace(new RegExp(` ${bttv.code} `, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${bttv.id}/2x" alt="${bttv.code}" title="${bttv.code}" height="28" width="28"> `);
+                    for(let bttv of this.channel_bttv) 
+                        fragment.text = fragment.text.replace(new RegExp(` ${bttv.code} `, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${bttv.id}/2x" alt="${bttv.code}" title="${bttv.code}" height="28" width="28"> `);
                 }
             }
-            return fragments;
+            return message.fragments;
         },
         filterVods(event) {
             if (this.timeout) 
@@ -146,15 +168,18 @@ export default {
                     `${baseUrl}?cursor=${cursor}`;
 
                 const res = await axios.get(url, { headers });
-                var data = res.data.comments.map(c => ({
-                    created_at: c.created_at, 
-                    username: c.commenter.display_name, 
-                    user_badges: c.message.user_badges,
-                    body: c.message.body,
-                    fragments: this.parseBttv(c.message.fragments), 
-                    user_color: this.getColor(c.message.user_color),
-                    vod_link: `https://www.twitch.tv/videos/${this.selected_vod}?t=${Math.floor(c.content_offset_seconds/3600)}h${Math.floor(c.content_offset_seconds/60)}m${Math.floor(c.content_offset_seconds%60)}s` }));
-                this.comments.push(...data.filter(this.compareComment));
+                this.comments.push(...res.data.comments
+                    .filter(this.compareComment)
+                    .map(c => ({
+                        created_at: c.created_at, 
+                        username: c.commenter.display_name, 
+                        user_badges: c.message.user_badges,
+                        body: c.message.body,
+                        fragments: c.message.fragments ? this.parseBttvAndBits(c.message) : {}, 
+                        user_color: this.getColor(c.message.user_color),
+                        vod_link: `https://www.twitch.tv/videos/${this.selected_vod}?t=${Math.floor(c.content_offset_seconds/3600)}h${Math.floor(c.content_offset_seconds/60%60)}m${Math.floor(c.content_offset_seconds%60)}s` 
+                    }))
+                );
 
                 if (!res.data._next) {
                     $state.loaded();
@@ -174,9 +199,9 @@ export default {
             this.cancel_comment_fect = false;
         },
         compareComment(comment) {
-            if (!comment.username.toLowerCase().includes(this.user_filter.toLowerCase()) && this.user_filter !== "")
+            if (!comment.commenter.display_name.toLowerCase().includes(this.user_filter.toLowerCase()) && this.user_filter !== "")
                 return false;
-            if (!comment.body.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
+            if (!comment.message.body.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
                 return false;
             return true;
         },
@@ -217,6 +242,14 @@ export default {
                 axios.get(`https://badges.twitch.tv/v1/badges/channels/${this.user_id}/display`)
                 .then(results => {
                     this.channel_twitch = results.data.badge_sets;
+                });
+                const headers = {
+                    'Client-ID': this.client_id,
+                    'Authorization': 'Bearer ' + this.code
+                };
+                axios.get(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${this.user_id}`, { headers })
+                .then(results => {
+                    this.channel_cheers = results.data.data;
                 });
                 axios.get(`https://api.betterttv.net/3/cached/users/twitch/${this.user_id}`)
                 .then(results => {
