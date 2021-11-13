@@ -69,18 +69,16 @@ export default {
 
             return original;    
         },
-        parseBttv(message) {
-            if(!message.fragments)
-                return message;
-            for(let i=0; i < message.fragments.length; i++) {
-                if (!message.fragments[i].emoticon) {
+        parseBttv(fragments) {
+            for(let i=0; i < fragments.length; i++) {
+                if (!fragments[i].emoticon) {
                     for(let j=0; j < this.global_bttv.length; j++) 
-                        message.fragments[i].text = message.fragments[i].text.replace(new RegExp(this.global_bttv[j].code, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${this.global_bttv[j].id}/2x" alt="${this.global_bttv[j].code}" title="${this.global_bttv[j].code}" height="28" width="28"> `);
+                        fragments[i].text = fragments[i].text.replace(new RegExp(this.global_bttv[j].code, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${this.global_bttv[j].id}/2x" alt="${this.global_bttv[j].code}" title="${this.global_bttv[j].code}" height="28" width="28"> `);
                     for(let j=0; j < this.channel_bttv.length; j++) 
-                        message.fragments[i].text = message.fragments[i].text.replace(new RegExp(this.channel_bttv[j].code, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${this.channel_bttv[j].id}/2x" alt="${this.channel_bttv[j].code}" title="${this.channel_bttv[j].code}" height="28" width="28"> `);
+                        fragments[i].text = fragments[i].text.replace(new RegExp(this.channel_bttv[j].code, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${this.channel_bttv[j].id}/2x" alt="${this.channel_bttv[j].code}" title="${this.channel_bttv[j].code}" height="28" width="28"> `);
                 }
             }
-            return message;
+            return fragments;
         },
         filterVods(event) {
             if (this.timeout) 
@@ -151,7 +149,10 @@ export default {
                 var data = res.data.comments.map(c => ({
                     created_at: c.created_at, 
                     username: c.commenter.display_name, 
-                    message: this.parseBttv(c.message), 
+                    user_badges: c.message.user_badges,
+                    body: c.message.body,
+                    fragments: this.parseBttv(c.message.fragments), 
+                    user_color: this.getColor(c.message.user_color),
                     vod_link: `https://www.twitch.tv/videos/${this.selected_vod}?t=${Math.floor(c.content_offset_seconds/3600)}h${Math.floor(c.content_offset_seconds/60)}m${Math.floor(c.content_offset_seconds%60)}s` }));
                 this.comments.push(...data.filter(this.compareComment));
 
@@ -175,7 +176,7 @@ export default {
         compareComment(comment) {
             if (!comment.username.toLowerCase().includes(this.user_filter.toLowerCase()) && this.user_filter !== "")
                 return false;
-            if (!comment.message.body.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
+            if (!comment.body.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
                 return false;
             return true;
         },
@@ -294,17 +295,17 @@ export default {
                 <div v-for="comment in comments" class="even:bg-gray-800 px-3 py-1 w-full">
                     <a class="inline text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
                     
-                    <div class="inline text-center" v-for="badge in comment.message.user_badges">
+                    <div class="inline text-center" v-for="badge in comment.user_badges">
                         <img class="inline pr-1" v-if="channel_twitch[badge._id] && channel_twitch[badge._id].versions[badge.version]" :src="channel_twitch[badge._id].versions[badge.version].image_url_2x" :alt="channel_twitch[badge._id].versions[badge.version].title" :title="channel_twitch[badge._id].versions[badge.version].title" height="28" width="28">
                         <img class="inline pr-1" v-else-if="global_twitch[badge._id] && global_twitch[badge._id].versions[badge.version]" :src="global_twitch[badge._id].versions[badge.version].image_url_2x" :alt="global_twitch[badge._id].versions[badge.version].title" :title="global_twitch[badge._id].versions[badge.version].title" height="28" width="28">
                         <span class="inline pr-1" v-else>{{badge.title}}</span>
                     </div>
                     
-                    <a class="inline" :style="{ color: getColor(comment.message.user_color) }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.username}}</a>
+                    <a class="inline" :style="{ color: comment.user_color }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.username}}</a>
                     
                     <span class="inline">: </span>
                     
-                    <div class="inline text-center" v-for="fragment in comment.message.fragments">
+                    <div class="inline text-center" v-for="fragment in comment.fragments">
                         <img class="inline" v-if="fragment.emoticon" :src="`https://static-cdn.jtvnw.net/emoticons/v1/${fragment.emoticon.emoticon_id}/2.0`" :alt="fragment.text" :title="fragment.text" height="28" width="28">
                         <div class="inline" v-else v-html="fragment.text"></div>
                     </div>
