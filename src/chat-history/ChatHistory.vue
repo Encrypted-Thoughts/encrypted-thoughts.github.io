@@ -15,6 +15,8 @@ export default {
         channel_badges: {},
         code: "",
         username: "",
+        user_id: 0,
+        user_changed: false,
         vod_filter: "",
         start_filter: "",
         end_filter: "",
@@ -172,22 +174,21 @@ export default {
             return res.data.data[0].id;
         },
         async getVods() {
-            var id = await this.getUserId();
+            let id = await this.getUserId();
+            if (id !== this.user_id) {
+                this.user_id = id;
+                this.user_changed = true;
+            }
             var cursor = "";
             this.vods = [];
             this.filtered_vods = [];
-
-            axios.get(`https://badges.twitch.tv/v1/badges/channels/${id}/display`)
-             .then(results => {
-                 this.channel_badges = results.data.badge_sets;
-             });
 
             do {
                 const headers = {
                     'Client-ID': this.client_id,
                     'Authorization': 'Bearer ' + this.code
                 };
-                const res = await axios.get(`https://api.twitch.tv/helix/videos?user_id=${id}&first=100&after=${cursor}`, { headers });
+                const res = await axios.get(`https://api.twitch.tv/helix/videos?user_id=${this.user_id}&first=100&after=${cursor}`, { headers });
                 var data = res.data.data.map(v => ({id: v.id, created_at: v.created_at, title: v.title }));
                 this.vods.push(...data);
                 this.filtered_vods.push(...data.filter(this.compareVod));
@@ -196,6 +197,13 @@ export default {
             } while (cursor)
         },
         reloadComments() {
+            if (this.user_changed) {
+                axios.get(`https://badges.twitch.tv/v1/badges/channels/${this.user_id}/display`)
+                .then(results => {
+                    this.channel_badges = results.data.badge_sets;
+                });
+            }
+
             this.comments = [];
             this.comment_cursor = "";
             this.comment_chunk_counter = 0;
@@ -262,8 +270,9 @@ export default {
                     <a class="inline text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
                     
                     <div class="inline text-center" v-for="badge in comment.message.user_badges">
-                        <img class="inline pr-1" v-if="channel_badges[badge._id]" :src="channel_badges[badge._id].versions[badge.version].image_url_2x" :alt="badge.title" height="28" width="28">
-                        <img class="inline pr-1" v-else-if="global_badges[badge._id]" :src="global_badges[badge._id].versions[badge.version].image_url_2x" :alt="badge.title" height="28" width="28">
+                        <img class="inline pr-1" v-if="channel_badges[badge._id] && channel_badges[badge._id].versions[badge.version]" :src="channel_badges[badge._id].versions[badge.version].image_url_2x" :alt="badge.title" height="28" width="28">
+                        <img class="inline pr-1" v-else-if="global_badges[badge._id] && global_badges[badge._id].versions[badge.version]" :src="global_badges[badge._id].versions[badge.version].image_url_2x" :alt="badge.title" height="28" width="28">
+                        <span class="inline pr-1" v-else>{{badge.title}}</span>
                     </div>
                     
                     <a class="inline" :style="{ color: getColor(comment.message.user_color) }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.username}}</a>
@@ -271,8 +280,8 @@ export default {
                     <span class="inline">: </span>
                     
                     <div class="inline text-center" v-for="fragment in comment.message.fragments">
-                        <img class="inline pr-1" v-if="fragment.emoticon" :src="`https://static-cdn.jtvnw.net/emoticons/v1/${fragment.emoticon.emoticon_id}/2.0`" :alt="fragment.text" height="28" width="28">
-                        <span class="inline pr-1" v-else>{{fragment.text}}</span>
+                        <img class="inline" v-if="fragment.emoticon" :src="`https://static-cdn.jtvnw.net/emoticons/v1/${fragment.emoticon.emoticon_id}/2.0`" :alt="fragment.text" height="28" width="28">
+                        <span class="inline" v-else>{{fragment.text}}</span>
                     </div>
                 </div>
                 <infinite-loading spinner="2" forceUseInfiniteWrapper="true" :distance="200" :identifier="infinite_id" @infinite="loadComments" class="even:bg-gray-800">
