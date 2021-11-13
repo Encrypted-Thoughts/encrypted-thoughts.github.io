@@ -147,7 +147,7 @@ export default {
                 
                 // needed for input change detection on mobile
                 if (event.target.id === 'user-filter')
-                    this.user_filter = event.target.value;
+                    this.user_filter = event.target.value.trim();
                 else if (event.target.id === 'message-filter')
                     this.message_filter = event.target.value;
 
@@ -249,6 +249,10 @@ export default {
             } while (cursor)
         },
         reloadComments() {
+            this.comments = [];
+            this.comment_cursor = "";
+            this.comment_chunk_counter = 0;
+
             if (this.user_changed) {
                 axios.get(`https://badges.twitch.tv/v1/badges/channels/${this.user_id}/display`)
                 .then(results => {
@@ -270,9 +274,6 @@ export default {
                 this.user_changed = false;
             }
 
-            this.comments = [];
-            this.comment_cursor = "";
-            this.comment_chunk_counter = 0;
             this.infinite_id += 1; 
         }
     },
@@ -311,7 +312,7 @@ export default {
                         <span class="text-xs md:text-base xl:text-lg" v-show="!code">ALLOW ACCESS</span>
                         <span class="text-xs md:text-base xl:text-lg" v-show="code">ALLOWED <font-awesome-icon icon="check" class="text-green-600"/></span>
                     </a>
-                    <input @input="evt => username=evt.target.value" v-model.trim="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
+                    <input @input="evt => username=evt.target.value.trim()" v-model.trim="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
                     <button @click="getVods()" :disabled="!username || !code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md w-1/4 disabled:opacity-50">
                         <span class="text-xs md:text-base xl:text-lg">VODS <font-awesome-icon icon="search"/></span>
                     </button>
