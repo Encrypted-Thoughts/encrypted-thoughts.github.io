@@ -11,8 +11,10 @@ export default {
     },
     data: ()=>( {
         client_id: 'icyqwwpy744ugu5x4ymyt6jqrnpxso',
-        global_badges: {},
-        channel_badges: {},
+        global_twitch: {},
+        global_bttv: {},
+        channel_twitch: {},
+        channel_bttv: {},
         code: "",
         username: "",
         user_id: 0,
@@ -63,9 +65,22 @@ export default {
 
             let color = tinycolor(original);
             if(color.isDark())
-                return color.brighten(20).toHexString();
+                return color.brighten(25).toHexString();
 
             return original;    
+        },
+        parseBttv(message) {
+            if(!message.fragments)
+                return message;
+            for(let i=0; i < message.fragments.length; i++) {
+                if (!message.fragments[i].emoticon) {
+                    for(let j=0; j < this.global_bttv.length; j++) 
+                        message.fragments[i].text = message.fragments[i].text.replace(new RegExp(this.global_bttv[j].code, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${this.global_bttv[j].id}/2x" alt="${this.global_bttv[j].code}" title="${this.global_bttv[j].code}" height="28" width="28"> `);
+                    for(let j=0; j < this.channel_bttv.length; j++) 
+                        message.fragments[i].text = message.fragments[i].text.replace(new RegExp(this.channel_bttv[j].code, "g"), ` <img class="inline" src="https://cdn.betterttv.net/emote/${this.channel_bttv[j].id}/2x" alt="${this.channel_bttv[j].code}" title="${this.channel_bttv[j].code}" height="28" width="28"> `);
+                }
+            }
+            return message;
         },
         filterVods(event) {
             if (this.timeout) 
@@ -136,7 +151,7 @@ export default {
                 var data = res.data.comments.map(c => ({
                     created_at: c.created_at, 
                     username: c.commenter.display_name, 
-                    message: c.message, 
+                    message: this.parseBttv(c.message), 
                     vod_link: `https://www.twitch.tv/videos/${this.selected_vod}?t=${Math.floor(c.content_offset_seconds/3600)}h${Math.floor(c.content_offset_seconds/60)}m${Math.floor(c.content_offset_seconds%60)}s` }));
                 this.comments.push(...data.filter(this.compareComment));
 
@@ -200,8 +215,14 @@ export default {
             if (this.user_changed) {
                 axios.get(`https://badges.twitch.tv/v1/badges/channels/${this.user_id}/display`)
                 .then(results => {
-                    this.channel_badges = results.data.badge_sets;
+                    this.channel_twitch = results.data.badge_sets;
                 });
+                axios.get(`https://api.betterttv.net/3/cached/users/twitch/${this.user_id}`)
+                .then(results => {
+                    this.channel_bttv = results.data.channelEmotes;
+                    this.channel_bttv.push(...results.data.sharedEmotes);
+                });
+                this.user_changed = false;
             }
 
             this.comments = [];
@@ -218,7 +239,11 @@ export default {
 
         axios.get('https://badges.twitch.tv/v1/badges/global/display')
              .then(results => {
-                 this.global_badges = results.data.badge_sets;
+                 this.global_twitch = results.data.badge_sets;
+             });
+        axios.get('https://api.betterttv.net/3/cached/emotes/global')
+             .then(results => {
+                 this.global_bttv = results.data;
              });
 
         window.addEventListener("resize", this.handleWindowResize);
@@ -241,7 +266,7 @@ export default {
                         <span class="text-xs md:text-base xl:text-lg" v-show="!code">ALLOW ACCESS</span>
                         <span class="text-xs md:text-base xl:text-lg" v-show="code">ALLOWED <font-awesome-icon icon="check" class="text-green-600"/></span>
                     </a>
-                    <input @input="evt => username=evt.target.value" v-model="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
+                    <input @input="evt => username=evt.target.value" v-model.trim="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
                     <button @click="getVods()" :disabled="!username || !code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md w-1/4 disabled:opacity-50">
                         <span class="text-xs md:text-base xl:text-lg">VODS <font-awesome-icon icon="search"/></span>
                     </button>
@@ -255,14 +280,14 @@ export default {
             </div>
             <select ref="vodSelect" @change="reloadComments" v-model="selected_vod" :disabled="vods.length === 0" :size="select_size" :class="select_size > 0 ? 'bg-none p-0' : ''" class="focus:outline-none focus:ring-0 focus:border-green-800 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 break-words whitespace-normal">
                 <option ref="defaultOption" value="" disabled hidden selected class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">Select a vod...</option>
-                <option v-for="(vod, index) in filtered_vods" :value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
+                <option v-for="vod in filtered_vods" :value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
                     {{ formatDate(vod.created_at) }}: {{vod.title}}
                 </option>
             </select>
         </div>
         <div class="flex flex-col h-2/3 w-full xl:w-2/3 xl:h-full pt-2 xl:pt-0 xl:pl-2 border-3 border-gray-600 bg-gray-900 rounded-md">
             <div class="flex w-full border-b-4 border-gray-600">
-                <input @input="filterComments($event)" id="user-filter" v-model="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
+                <input @input="filterComments($event)" id="user-filter" v-model.trim="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
                 <input @input="filterComments($event)" id="message-filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
             </div>
             <div infinite-wrapper class="scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
@@ -270,8 +295,8 @@ export default {
                     <a class="inline text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
                     
                     <div class="inline text-center" v-for="badge in comment.message.user_badges">
-                        <img class="inline pr-1" v-if="channel_badges[badge._id] && channel_badges[badge._id].versions[badge.version]" :src="channel_badges[badge._id].versions[badge.version].image_url_2x" :alt="badge.title" height="28" width="28">
-                        <img class="inline pr-1" v-else-if="global_badges[badge._id] && global_badges[badge._id].versions[badge.version]" :src="global_badges[badge._id].versions[badge.version].image_url_2x" :alt="badge.title" height="28" width="28">
+                        <img class="inline pr-1" v-if="channel_twitch[badge._id] && channel_twitch[badge._id].versions[badge.version]" :src="channel_twitch[badge._id].versions[badge.version].image_url_2x" :alt="channel_twitch[badge._id].versions[badge.version].title" :title="channel_twitch[badge._id].versions[badge.version].title" height="28" width="28">
+                        <img class="inline pr-1" v-else-if="global_twitch[badge._id] && global_twitch[badge._id].versions[badge.version]" :src="global_twitch[badge._id].versions[badge.version].image_url_2x" :alt="global_twitch[badge._id].versions[badge.version].title" :title="global_twitch[badge._id].versions[badge.version].title" height="28" width="28">
                         <span class="inline pr-1" v-else>{{badge.title}}</span>
                     </div>
                     
@@ -280,8 +305,8 @@ export default {
                     <span class="inline">: </span>
                     
                     <div class="inline text-center" v-for="fragment in comment.message.fragments">
-                        <img class="inline" v-if="fragment.emoticon" :src="`https://static-cdn.jtvnw.net/emoticons/v1/${fragment.emoticon.emoticon_id}/2.0`" :alt="fragment.text" height="28" width="28">
-                        <span class="inline" v-else>{{fragment.text}}</span>
+                        <img class="inline" v-if="fragment.emoticon" :src="`https://static-cdn.jtvnw.net/emoticons/v1/${fragment.emoticon.emoticon_id}/2.0`" :alt="fragment.text" :title="fragment.text" height="28" width="28">
+                        <div class="inline" v-else v-html="fragment.text"></div>
                     </div>
                 </div>
                 <infinite-loading spinner="2" forceUseInfiniteWrapper="true" :distance="200" :identifier="infinite_id" @infinite="loadComments" class="even:bg-gray-800">
