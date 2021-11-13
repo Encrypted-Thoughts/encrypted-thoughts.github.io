@@ -305,7 +305,7 @@ export default {
 <template>
 
     <div class="flex flex-wrap h-full w-full text-white p-2">
-        <div class="flex flex-col gap-2 h-1/3 w-full xl:w-1/3 xl:h-full border-b-4 border-gray-600 pb-2 xl:pb-0 xl:pr-2 xl:border-b-0 xl:border-r-4">
+        <div class="flex flex-col gap-2 h-1/3 w-full xl:w-1/3 xl:h-full border-gray-600 pb-2 xl:pb-0 xl:pr-2">
             <div class="flex flex-wrap gap-2 min-w-full">
                 <div class="flex gap-2 min-w-full max-h-full pb-2 border-b-5 border-gray-600">
                     <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" :class="code ? '' : 'animate-pulse'" class="w-1/4 text-center bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md">
@@ -331,7 +331,7 @@ export default {
                 </option>
             </select>
         </div>
-        <div class="flex flex-col h-2/3 w-full xl:w-2/3 xl:h-full pt-2 xl:pt-0 xl:pl-2 border-3 border-gray-600 bg-gray-900 rounded-md">
+        <div class="flex flex-col h-2/3 w-full xl:w-2/3 xl:h-full border-3 border-gray-600 bg-gray-900 rounded-md">
             <div class="flex w-full border-b-4 border-gray-600">
                 <input @input="filterComments($event)" id="user-filter" v-model.trim="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
                 <input @input="filterComments($event)" id="message-filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
