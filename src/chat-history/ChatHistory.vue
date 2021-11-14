@@ -305,38 +305,37 @@ export default {
 <template>
 
     <div class="flex flex-wrap h-full w-full text-white p-2">
-        <div class="flex flex-col gap-2 h-1/3 w-full xl:w-1/3 xl:h-full border-gray-600 pb-2 xl:pb-0 xl:pr-2">
+        <div class="flex flex-col h-1/3 w-full xl:w-1/3 xl:h-full border-gray-600 pb-2 xl:pb-0 xl:pr-2">
             <div class="flex flex-wrap gap-2 min-w-full">
-                <div class="flex gap-2 min-w-full max-h-full pb-2 border-b-5 border-gray-600">
+                <div class="flex gap-2 min-w-full max-h-full pb-2">
                     <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" :class="code ? '' : 'animate-pulse'" class="w-1/4 text-center bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md">
                         <span class="text-xs md:text-base xl:text-lg" v-show="!code">ALLOW ACCESS</span>
                         <span class="text-xs md:text-base xl:text-lg" v-show="code">ALLOWED <font-awesome-icon icon="check" class="text-green-600"/></span>
                     </a>
-                    <input @input="evt => username=evt.target.value.trim()" v-model.trim="username" type="text" class="form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
+                    <input @input="evt => username=evt.target.value.trim()" v-model.trim="username" type="text" class="form-input border-2 border-gray-600 focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md w-2/4" placeholder="Enter a username..."/>
                     <button @click="getVods()" :disabled="!username || !code" class="bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md w-1/4 disabled:opacity-50">
                         <span class="text-xs md:text-base xl:text-lg">VODS <font-awesome-icon icon="search"/></span>
                     </button>
                 </div>
-                
-                <div class="flex gap-2 min-w-full">
-                    <input @input="filterVods($event)" id="vod-filter" v-model="vod_filter" type="text" class="w-1/3 focus:outline-none focus:ring-0 focus:border-green-700 form-input bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Filter on VOD name..."/>
-                    <input @input="filterVods($event)" id="start-time" v-model="start_filter" type="datetime-local" :class="start_filter ? '' : 'start-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="Start time filter..."/>
-                    <input @input="filterVods($event)" id="end-time" v-model="end_filter" type="datetime-local" :class="end_filter ? '' : 'end-time'" class="w-1/3 flex-1 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-md disabled:opacity-50" placeholder="End time filter..."/>
-                </div>
             </div>
-            <select ref="vodSelect" @change="reloadComments" v-model="selected_vod" :disabled="vods.length === 0" :size="select_size" :class="select_size > 0 ? 'bg-none p-0' : ''" class="focus:outline-none focus:ring-0 focus:border-green-800 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-md scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 break-words whitespace-normal">
+            <div class="flex min-w-full">
+                <input @input="filterVods($event)" id="vod-filter" v-model="vod_filter" type="text" class="w-1/3 border-2 border-gray-600 focus:outline-none focus:ring-0 focus:border-green-700 form-input bg-gray-900 px-3 py-2 rounded-tl-md disabled:opacity-50" placeholder="Filter on VOD name..."/>
+                <input @input="filterVods($event)" id="start-time" v-model="start_filter" type="datetime-local" :class="start_filter ? '' : 'start-time'" class="w-1/3 flex-1 border-2 border-gray-600 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 disabled:opacity-50" placeholder="Start time filter..."/>
+                <input @input="filterVods($event)" id="end-time" v-model="end_filter" type="datetime-local" :class="end_filter ? '' : 'end-time'" class="w-1/3 flex-1 border-2 border-gray-600 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 px-3 py-2 rounded-tr-md disabled:opacity-50" placeholder="End time filter..."/>
+            </div>
+            <select ref="vodSelect" @change="reloadComments" v-model="selected_vod" :disabled="vods.length === 0" :size="select_size" :class="select_size > 0 ? 'bg-none p-0' : ''" class="focus:outline-none focus:ring-0 focus:border-green-800 h-full w-full border-2 border-gray-600 bg-gray-900 rounded-b-md scrollbar-thin scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 break-words whitespace-normal">
                 <option ref="defaultOption" value="" disabled hidden selected class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">Select a vod...</option>
                 <option v-for="vod in filtered_vods" :value="vod.id" class="rounded-sm even:bg-gray-800 w-full p-1 pl-3">
                     {{ formatDate(vod.created_at) }}: {{vod.title}}
                 </option>
             </select>
         </div>
-        <div class="flex flex-col h-2/3 w-full xl:w-2/3 xl:h-full border-3 border-gray-600 bg-gray-900 rounded-md">
-            <div class="flex w-full border-b-4 border-gray-600">
-                <input @input="filterComments($event)" id="user-filter" v-model.trim="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on username..."/>
-                <input @input="filterComments($event)" id="message-filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900" placeholder="Filter on message..."/>
+        <div class="flex flex-col h-2/3 w-full xl:w-2/3 xl:h-full">
+            <div class="flex w-full">
+                <input @input="filterComments($event)" id="user-filter" v-model.trim="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 border-2 border-gray-600 rounded-tl-md" placeholder="Filter on username..."/>
+                <input @input="filterComments($event)" id="message-filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 border-2 border-gray-600 rounded-tr-md" placeholder="Filter on message..."/>
             </div>
-            <div infinite-wrapper class="scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500">
+            <div infinite-wrapper class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 border-2 border-gray-600 bg-gray-900 rounded-b-md">
                 <div v-for="comment in comments" class="even:bg-gray-800 px-3 py-1 w-full">
                     <a class="inline text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
                     
