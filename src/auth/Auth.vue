@@ -14,7 +14,7 @@ export default {
         const searchParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substr(1));
         if (searchParams.get('code')) 
-            this.code = urlParams.get('code');
+            this.code = searchParams.get('code');
         else if (hashParams.get('access_token'))
             this.code = hashParams.get('access_token');
     }
