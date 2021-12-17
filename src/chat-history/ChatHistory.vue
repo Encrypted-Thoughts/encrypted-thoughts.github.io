@@ -84,15 +84,26 @@ export default {
             return text;
         },
         parseBttv(text) {
-            for(let bttv of this.global_bttv) {
-                if (text === bttv.code) 
-                    return `<img class="inline" src="https://cdn.betterttv.net/emote/${bttv.id}/2x" alt="${bttv.code}" title="${bttv.code}" height="28" width="28">`;
+            if (this.isIterable(this.global_bttv)) {
+                for(let bttv of this.global_bttv) {
+                    if (text === bttv.code) 
+                        return `<img class="inline" src="https://cdn.betterttv.net/emote/${bttv.id}/2x" alt="${bttv.code}" title="${bttv.code}" height="28" width="28">`;
+                }
             }
-            for(let bttv of this.channel_bttv) {
-                if (text === bttv.code) 
-                    return `<img class="inline" src="https://cdn.betterttv.net/emote/${bttv.id}/2x" alt="${bttv.code}" title="${bttv.code}" height="28" width="28">`;
+            if (this.isIterable(this.channel_bttv)) {
+                for(let bttv of this.channel_bttv) {
+                    if (text === bttv.code) 
+                        return `<img class="inline" src="https://cdn.betterttv.net/emote/${bttv.id}/2x" alt="${bttv.code}" title="${bttv.code}" height="28" width="28">`;
+                }
             }
             return text;
+        },
+        isIterable(obj) {
+            // checks for null and undefined
+            if (obj == null) {
+                return false;
+            }
+            return typeof obj[Symbol.iterator] === 'function';
         },
         parseBttvAndBits(message) {
             for(let fragment of message.fragments) {
