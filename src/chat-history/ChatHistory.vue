@@ -319,7 +319,7 @@ export default {
         <div class="flex flex-col h-1/3 w-full xl:w-1/3 xl:h-full border-gray-600 pb-2 xl:pb-0 xl:pr-2">
             <div class="flex flex-wrap gap-2 min-w-full">
                 <div class="flex gap-2 min-w-full max-h-full pb-2">
-                    <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history&scope=chat:read&force_verify=true`" :class="code ? '' : 'animate-pulse'" class="w-1/4 text-center bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md">
+                    <a v-bind:href="`https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${client_id}&redirect_uri=https://encrypted-thoughts.github.io/chat-history`" :class="code ? '' : 'animate-pulse'" class="w-1/4 text-center bg-gray-900 border-2 border-gray-600 hover:bg-gray-700 font-bold py-2 px-1 shadow-lg rounded-md">
                         <span class="text-xs md:text-base xl:text-lg" v-show="!code">ALLOW ACCESS</span>
                         <span class="text-xs md:text-base xl:text-lg" v-show="code">ALLOWED <font-awesome-icon icon="check" class="text-green-600"/></span>
                     </a>
