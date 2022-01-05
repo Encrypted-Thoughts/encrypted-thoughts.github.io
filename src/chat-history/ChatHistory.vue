@@ -13,7 +13,8 @@ export default {
         client_id: 'icyqwwpy744ugu5x4ymyt6jqrnpxso',
         global_twitch: {},
         global_bttv: {},
-        channel_twitch: {},
+        channel_twitch_badges: {},
+        channel_twitch_emotes: {},
         channel_cheers: {},
         channel_bttv: {},
         code: "",
@@ -105,7 +106,7 @@ export default {
             }
             return typeof obj[Symbol.iterator] === 'function';
         },
-        parseBttvAndBits(message) {
+        parseEmotes(message) {
             for(let fragment of message.fragments) {
                 if (!fragment.emoticon) {
                     let items = [];
@@ -120,6 +121,13 @@ export default {
                         items.push(text);
                     }
                     fragment.text = items.join(" ");
+                }
+                else {
+                    let emote = this.channel_twitch_emotes.find(x => x.id === fragment.emoticon.emoticon_id);
+                    if (emote) 
+                        fragment.emoticon.format = emote.format.length > 1 ? 'animated' : 'static';
+                    else
+                        fragment.emoticon.format = 'static';
                 }
             }
             return message.fragments;
@@ -197,7 +205,7 @@ export default {
                         username: c.commenter.display_name, 
                         user_badges: c.message.user_badges,
                         body: c.message.body,
-                        fragments: c.message.fragments ? this.parseBttvAndBits(c.message) : {}, 
+                        fragments: c.message.fragments ? this.parseEmotes(c.message) : {}, 
                         user_color: this.getColor(c.message.user_color),
                         vod_link: `https://www.twitch.tv/videos/${this.selected_vod}?t=${Math.floor(c.content_offset_seconds/3600)}h${Math.floor(c.content_offset_seconds/60%60)}m${Math.floor(c.content_offset_seconds%60)}s` 
                     }))
@@ -267,12 +275,16 @@ export default {
             if (this.user_changed) {
                 axios.get(`https://badges.twitch.tv/v1/badges/channels/${this.user_id}/display`)
                 .then(results => {
-                    this.channel_twitch = results.data.badge_sets;
+                    this.channel_twitch_badges = results.data.badge_sets;
                 });
                 const headers = {
                     'Client-ID': this.client_id,
                     'Authorization': 'Bearer ' + this.code
                 };
+                axios.get(`https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${this.user_id}`, { headers })
+                .then(results => {
+                    this.channel_twitch_emotes = results.data.data;
+                });
                 axios.get(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${this.user_id}`, { headers })
                 .then(results => {
                     this.channel_cheers = results.data.data;
@@ -351,7 +363,7 @@ export default {
                     <a class="inline text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
                     
                     <div class="inline text-center" v-for="badge in comment.user_badges">
-                        <img class="inline pr-1" v-if="channel_twitch[badge._id] && channel_twitch[badge._id].versions[badge.version]" :src="channel_twitch[badge._id].versions[badge.version].image_url_2x" :alt="channel_twitch[badge._id].versions[badge.version].title" :title="channel_twitch[badge._id].versions[badge.version].title" height="28" width="28">
+                        <img class="inline pr-1" v-if="channel_twitch_badges[badge._id] && channel_twitch_badges[badge._id].versions[badge.version]" :src="channel_twitch_badges[badge._id].versions[badge.version].image_url_2x" :alt="channel_twitch_badges[badge._id].versions[badge.version].title" :title="channel_twitch_badges[badge._id].versions[badge.version].title" height="28" width="28">
                         <img class="inline pr-1" v-else-if="global_twitch[badge._id] && global_twitch[badge._id].versions[badge.version]" :src="global_twitch[badge._id].versions[badge.version].image_url_2x" :alt="global_twitch[badge._id].versions[badge.version].title" :title="global_twitch[badge._id].versions[badge.version].title" height="28" width="28">
                         <span class="inline pr-1" v-else>{{badge.title}}</span>
                     </div>
@@ -361,7 +373,7 @@ export default {
                     <span class="inline">: </span>
                     
                     <div class="inline text-center" v-for="fragment in comment.fragments">
-                        <img class="inline" v-if="fragment.emoticon" :src="`https://static-cdn.jtvnw.net/emoticons/v1/${fragment.emoticon.emoticon_id}/2.0`" :alt="fragment.text" :title="fragment.text" height="28" width="28">
+                        <img class="inline" v-if="fragment.emoticon" :src="`https://static-cdn.jtvnw.net/emoticons/v2/${fragment.emoticon.emoticon_id}/${fragment.emoticon.format}/dark/2.0`" :alt="fragment.text" :title="fragment.text" height="28" width="28">
                         <div class="inline text-white" v-else v-html="fragment.text"></div>
                     </div>
                 </div>
