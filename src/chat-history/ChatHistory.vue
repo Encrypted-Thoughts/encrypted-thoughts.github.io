@@ -123,11 +123,12 @@ export default {
                     fragment.text = items.join(" ");
                 }
                 else {
-                    let emote = this.channel_twitch_emotes.find(x => x.id === fragment.emoticon.emoticon_id);
-                    if (emote) 
-                        fragment.emoticon.format = emote.format.length > 1 ? 'animated' : 'static';
-                    else
-                        fragment.emoticon.format = 'static';
+                    fragment.emoticon.format = 'static';
+                    if (Object.keys(this.channel_twitch_emotes).length > 0) {
+                        let emote = this.channel_twitch_emotes.find(x => x.id === fragment.emoticon.emoticon_id);
+                        if (emote && emote.format.length > 1) 
+                            fragment.emoticon.format = 'animated';
+                    }
                 }
             }
             return message.fragments;
