@@ -203,7 +203,8 @@ export default {
                     .filter(this.compareComment)
                     .map(c => ({
                         created_at: c.created_at, 
-                        username: c.commenter.display_name, 
+                        username: c.commenter.name, 
+                        displayname: c.commenter.display_name,
                         user_badges: c.message.user_badges,
                         body: c.message.body,
                         fragments: c.message.fragments ? this.parseEmotes(c.message) : {}, 
@@ -369,7 +370,7 @@ export default {
                         <span class="inline pr-1" v-else>{{badge.title}}</span>
                     </div>
                     
-                    <a class="inline" :style="{ color: comment.user_color }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.username}}</a>
+                    <a class="inline" :style="{ color: comment.user_color }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.displayname}}{{ comment.displayname.toLowerCase() === comment.username.toLowerCase() ? "" : " (" + comment.username + ")"}}</a>
                     
                     <span class="inline">: </span>
                     
