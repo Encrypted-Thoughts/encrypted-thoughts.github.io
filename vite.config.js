@@ -3,11 +3,12 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from "path";
 
 const root = resolve(__dirname, 'src')
-const outDir = resolve(__dirname, 'docs')
+const outDir = resolve(__dirname, 'dist')
 
 // https://vitejs.dev/config/
 export default defineConfig({
   root,
+  publicPath: "/",
   plugins: [vue()],
   build: {
     outDir,
