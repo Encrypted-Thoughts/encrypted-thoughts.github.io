@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\dist",
+    "\\public",
+    "\\src",
+    "\\src\\chat-history"
+  ],
+  "SelectedNode": "\\src\\chat-history\\ChatHistory.vue",
+  "PreviewInSolutionExplorer": false
+}

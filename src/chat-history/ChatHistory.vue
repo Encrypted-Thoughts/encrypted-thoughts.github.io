@@ -2,18 +2,16 @@
 import axios from 'axios';
 import moment from 'moment';
 import tinycolor from 'tinycolor2';
-import InfiniteLoading from 'vue-infinite-loading';
 
 export default {
     name: "ChatHistory",
-    components: {
-        InfiniteLoading
-    },
+    components: {},
     data: ()=>( {
         client_id: 'icyqwwpy744ugu5x4ymyt6jqrnpxso',
+        gql_id: 'kd1unb4b3q4t58fwlpcbzcbnm76a8fp',
         global_twitch: {},
         global_bttv: {},
-        channel_twitch_badges: {},
+        twitch_badges: {},
         channel_twitch_emotes: {},
         channel_cheers: {},
         channel_bttv: {},
@@ -27,10 +25,9 @@ export default {
         user_filter: "",
         message_filter: "",
         vods: [],
-        infinite_id: 0,
         selected_vod: 0,
         filtered_vods: [],
-        comment_cursor: '',
+        comment_offset: 0,
         comment_chunk_counter: 0,
         comments: [],
         cancel_comment_fetch: false,
@@ -180,65 +177,79 @@ export default {
                 return;
             }
             if (this.comment_fetch_in_progress) {
-                this.cancel_comment_fect = true;
+                this.cancel_comment_fetch = true;
                 while (this.comment_fetch_in_progress)
                     await new Promise(r => setTimeout(r, 1000));
                 this.comments = [];
-                this.comment_cursor = "";
+                this.comment_offset = 0;
                 this.comment_chunk_counter = 0;
             }
 
-            const headers = { 'Client-ID': this.client_id };
-            const baseUrl = `https://api.twitch.tv/v5/videos/${this.selected_vod}/comments`;
-            var cursor = this.comment_cursor;
+            const headers = { 'Client-ID': this.gql_id };
+            let hasNextPage = true;
+            let previous = this.comment_offset;
             this.comment_fetch_in_progress = true;
 
             do {
-                var url = (cursor === null || cursor === '') ?
-                    `${baseUrl}?content_offset_seconds=0` :
-                    `${baseUrl}?cursor=${cursor}`;
+                previous = this.comment_offset;
 
-                const res = await axios.get(url, { headers });
-                this.comments.push(...res.data.comments
-                    .filter(this.compareComment)
-                    .map(c => ({
-                        created_at: c.created_at, 
-                        username: c.commenter.name, 
-                        displayname: c.commenter.display_name,
-                        user_badges: c.message.user_badges,
-                        body: c.message.body,
-                        fragments: c.message.fragments ? this.parseEmotes(c.message) : {}, 
-                        user_color: this.getColor(c.message.user_color),
-                        vod_link: `https://www.twitch.tv/videos/${this.selected_vod}?t=${Math.floor(c.content_offset_seconds/3600)}h${Math.floor(c.content_offset_seconds/60%60)}m${Math.floor(c.content_offset_seconds%60)}s` 
-                    }))
-                );
+                const postData = [{
+                    "operationName": "VideoCommentsByOffsetOrCursor",
+                    "variables": {
+                        "videoID": this.selected_vod,
+                        "contentOffsetSeconds": this.comment_offset > 0 ? this.comment_offset + 1 : this.comment_offset
+                    },
+                    "extensions": {
+                        "persistedQuery": {
+                            "version": 1,
+                            "sha256Hash": "b70a3591ff0f4e0313d126c6a1502d79a1c02baebb288227c582044aa76adf6a"
+                        }
+                    }
+                }]
 
-                if (!res.data._next) {
-                    $state.loaded();
-                    $state.complete();
-                    break;
-                }
+                const res = await axios.post("https://gql.twitch.tv/gql", postData, { headers });
+                if (res.data[0] && res.data[0].data.video.comments !== null) {
+                    for (let comment of res.data[0].data.video.comments.edges) {
+                        if (this.comment_offset >= comment.node.contentOffsetSeconds) continue;
+                        this.comment_offset = comment.node.contentOffsetSeconds;
+                        const node = comment.node;
+                        if (!this.compareComment(comment)) continue;
+                        this.comments.push({
+                            created_at: node.createdAt, 
+                            username: node.commenter.login, 
+                            displayname: node.commenter.displayName,
+                            user_badges: node.message.userBadges,
+                            fragments: node.message.fragments, 
+                            user_color: this.getColor(node.message.userColor),
+                            vod_link: `https://www.twitch.tv/videos/${this.selected_vod}?t=${Math.floor(this.comment_offset/3600)}h${Math.floor(this.comment_offset/60%60)}m${Math.floor(this.comment_offset%60)}s` 
+                        });
+                    }
+                    hasNextPage = res.data[0].data.video.comments.pageInfo.hasNextPage;
+                } 
+
                 if (this.comments.length > (this.comment_chunk_counter*500 + 500)){
-                    this.comment_cursor = res.data._next;
                     this.comment_chunk_counter += 1;
-                    $state.loaded();
                     break;
                 }
-                cursor = res.data._next;
-            } while (cursor && !this.cancel_comment_fect)
+            } while (this.comment_offset === previous && !this.cancel_comment_fetch && hasNextPage)
 
             this.comment_fetch_in_progress = false;
-            this.cancel_comment_fect = false;
+            this.cancel_comment_fetch = false;
         },
         compareComment(comment) {
-            if (!comment.commenter.display_name.toLowerCase().includes(this.user_filter.toLowerCase()) && this.user_filter !== "")
+            if (!comment.node.commenter.displayName.toLowerCase().includes(this.user_filter.toLowerCase()) && this.user_filter !== "")
                 return false;
-            if (!comment.message.body.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
+
+            let message = "";
+            for (let fragment of comment.node.message.fragments) 
+                message += fragment.text;
+
+            if (!message.toLowerCase().includes(this.message_filter.toLowerCase()) && this.message_filter !== "")
                 return false;
+
             return true;
         },
         async getUserId() {
-
             const headers = {
                 'Client-ID': this.client_id,
                 'Authorization': 'Bearer ' + this.code
@@ -269,20 +280,32 @@ export default {
                 else break;
             } while (cursor)
         },
+        getBadge(badge) {
+            for (let channel_badge of this.twitch_badges) {
+                if (badge.setID === channel_badge.set_id) {
+                    for(let version of channel_badge.versions) {
+                        if (badge.version === version)
+                            return channel_badge;
+                    }
+                }
+            }
+            return null;
+        },
         reloadComments() {
             this.comments = [];
-            this.comment_cursor = "";
+            this.comment_offset = 0;
             this.comment_chunk_counter = 0;
 
             if (this.user_changed) {
-                axios.get(`https://badges.twitch.tv/v1/badges/channels/${this.user_id}/display`)
-                .then(results => {
-                    this.channel_twitch_badges = results.data.badge_sets;
-                });
                 const headers = {
                     'Client-ID': this.client_id,
                     'Authorization': 'Bearer ' + this.code
                 };
+                axios.get(`https://api.twitch.tv/helix/chat/badges/?broadcaster_id=${this.user_id}`, { headers })
+                .then(results => {
+                    this.twitch_badges = results.data.data;
+                    this.twitch_badges.push(...this.global_twitch);
+                });
                 axios.get(`https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${this.user_id}`, { headers })
                 .then(results => {
                     this.channel_twitch_emotes = results.data.data;
@@ -295,22 +318,38 @@ export default {
                 .then(results => {
                     this.channel_bttv = results.data.channelEmotes;
                     this.channel_bttv.push(...results.data.sharedEmotes);
+                }).catch(error => {
+                    console.error(`Unabled to obtain bttv emotes for channel`);
+                    console.error(error.response);
                 });
                 this.user_changed = false;
             }
 
-            this.infinite_id += 1; 
+            this.loadComments();
+        },
+        handleScroll() {
+            if (this.timeout) 
+                clearTimeout(this.timeout); 
+            this.timeout = setTimeout(() => {
+                let element = document.getElementById("comment-container");
+                if (element.scrollTop >= (element.scrollHeight - element.offsetHeight))
+                    this.loadComments();
+            }, 100); 
         }
     },
-    created: function(){
+    created() {
         const code = new URLSearchParams(window.location.search).get('code');
-        const token = new URLSearchParams(window.location.hash.substr(1)).get('access_token');
+        const token = new URLSearchParams(window.location.hash.substring(1)).get('access_token');
         if (code) this.code = code;
         else if (token) this.code = token;
 
-        axios.get('https://badges.twitch.tv/v1/badges/global/display')
+        const headers = {
+            'Client-ID': this.client_id,
+            'Authorization': 'Bearer ' + this.code
+        };
+        axios.get('https://api.twitch.tv/helix/chat/badges/global', { headers })
              .then(results => {
-                 this.global_twitch = results.data.badge_sets;
+                 this.global_twitch = results.data.data;
              });
         axios.get('https://api.betterttv.net/3/cached/emotes/global')
              .then(results => {
@@ -322,6 +361,14 @@ export default {
     },
     destroyed() {
         window.removeEventListener("resize", this.handleWindowResize);
+    },
+    mounted() {
+        let element = document.getElementById("comment-container");
+        element.addEventListener("scroll", this.handleScroll);
+    },
+    unmounted() {
+        let element = document.getElementById("comment-container");
+        element.removeEventListener("scroll", this.handleScroll)
     }
 }
 
@@ -360,14 +407,18 @@ export default {
                 <input @input="filterComments($event)" id="user-filter" v-model.trim="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 border-2 border-gray-600 rounded-tl-md" placeholder="Filter on username..."/>
                 <input @input="filterComments($event)" id="message-filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 border-2 border-gray-600 rounded-tr-md" placeholder="Filter on message..."/>
             </div>
-            <div infinite-wrapper class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 border-2 border-gray-600 bg-gray-900 rounded-b-md overflow-y-auto">
+            <div id="comment-container" class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 border-2 border-gray-600 bg-gray-900 rounded-b-md overflow-y-auto">
                 <div v-for="comment in comments" class="even:bg-gray-800 px-3 py-1 w-full">
                     <a class="inline text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
                     
                     <div class="inline text-center" v-for="badge in comment.user_badges">
-                        <img class="inline pr-1" v-if="channel_twitch_badges[badge._id] && channel_twitch_badges[badge._id].versions[badge.version]" :src="channel_twitch_badges[badge._id].versions[badge.version].image_url_2x" :alt="channel_twitch_badges[badge._id].versions[badge.version].title" :title="channel_twitch_badges[badge._id].versions[badge.version].title" height="28" width="28">
-                        <img class="inline pr-1" v-else-if="global_twitch[badge._id] && global_twitch[badge._id].versions[badge.version]" :src="global_twitch[badge._id].versions[badge.version].image_url_2x" :alt="global_twitch[badge._id].versions[badge.version].title" :title="global_twitch[badge._id].versions[badge.version].title" height="28" width="28">
-                        <span class="inline pr-1" v-else>{{badge.title}}</span>
+                        <template v-for="channel_badge in twitch_badges">
+                            <template v-if="channel_badge.set_id === badge.setID">
+                                <template v-for="version in channel_badge.versions">
+                                    <img class="inline pr-1" v-if="version.id === badge.version" :src="version.image_url_2x" :alt="version.title" :title="version.title" height="28" width="28">
+                                </template>
+                            </template>
+                        </template>
                     </div>
                     
                     <a class="inline" :style="{ color: comment.user_color }" :href="`https://www.twitch.tv/${comment.username}`" target="_blank" rel="noopener noreferrer">{{comment.displayname}}{{ comment.displayname.toLowerCase() === comment.username.toLowerCase() ? "" : " (" + comment.username + ")"}}</a>
@@ -375,14 +426,10 @@ export default {
                     <span class="inline">: </span>
                     
                     <div class="inline text-center" v-for="fragment in comment.fragments">
-                        <img class="inline" v-if="fragment.emoticon" :src="`https://static-cdn.jtvnw.net/emoticons/v2/${fragment.emoticon.emoticon_id}/${fragment.emoticon.format}/dark/2.0`" :alt="fragment.text" :title="fragment.text" height="28" width="28">
+                        <img class="inline" v-if="fragment.emote" :src="`https://static-cdn.jtvnw.net/emoticons/v2/${fragment.emote.emoteID}/default/dark/2.0`" :alt="fragment.text" :title="fragment.text" height="28" width="28">
                         <div class="inline text-white" v-else v-html="fragment.text"></div>
                     </div>
                 </div>
-                <infinite-loading spinner="2" forceUseInfiniteWrapper="true" :distance="200" :identifier="infinite_id" @infinite="loadComments" class="even:bg-gray-800">
-                    <template v-slot:no-more>end of chat ({{this.comments.length}} messages)</template>
-                    <template v-slot:no-results>chat not loaded</template>
-                </infinite-loading>
             </div>
         </div>
     </div>
