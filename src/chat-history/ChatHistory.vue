@@ -375,7 +375,6 @@ export default {
 </script>
 
 <template>
-
     <div class="flex flex-wrap h-full w-full text-white p-2">
         <div class="flex flex-col h-1/3 w-full xl:w-1/3 xl:h-full border-gray-600 pb-2 xl:pb-0 xl:pr-2">
             <div class="flex flex-wrap gap-2 min-w-full">
@@ -433,7 +432,6 @@ export default {
             </div>
         </div>
     </div>
-
 </template>
 
 <style scoped>
