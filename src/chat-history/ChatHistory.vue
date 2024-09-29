@@ -231,7 +231,7 @@ export default {
                     this.comment_chunk_counter += 1;
                     break;
                 }
-            } while (this.comment_offset === previous && !this.cancel_comment_fetch && hasNextPage)
+            } while (this.comment_offset !== previous && !this.cancel_comment_fetch && hasNextPage)
 
             this.comment_fetch_in_progress = false;
             this.cancel_comment_fetch = false;
@@ -406,7 +406,7 @@ export default {
                 <input @input="filterComments($event)" id="user-filter" v-model.trim="user_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 border-2 border-gray-600 rounded-tl-md" placeholder="Filter on username..."/>
                 <input @input="filterComments($event)" id="message-filter" v-model="message_filter" type="text" class="w-1/2 form-input focus:outline-none focus:ring-0 focus:border-green-700 bg-gray-900 border-2 border-gray-600 rounded-tr-md" placeholder="Filter on message..."/>
             </div>
-            <div id="comment-container" class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 border-2 border-gray-600 bg-gray-900 rounded-b-md overflow-y-auto">
+            <div id="comment-container" class="h-full scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-gray-500 scrollbar scrollbar-thumb-green-900 hover:scrollbar-thumb-green-800 scrollbar-track-gray-500 border-2 border-gray-600 bg-gray-900 rounded-b-md overflow-y-scroll">
                 <div v-for="comment in comments" class="even:bg-gray-800 px-3 py-1 w-full">
                     <a class="inline text-gray-400 pr-1" :href="comment.vod_link" target="_blank" rel="noopener noreferrer">{{formatTime(comment.created_at)}}</a>
                     
