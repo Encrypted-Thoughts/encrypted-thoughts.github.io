@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [vue()],
   build: {
     outDir,
-    emptyOutDir: true,
+    emptyOutDir: false,
     rollupOptions: {
       input: {
         main: resolve(root, 'index.html'),
